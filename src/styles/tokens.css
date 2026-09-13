@@ -18,10 +18,14 @@
   /* Semantic feedback */
   --feedback-success: #10b981;
   --feedback-success-ink: #047857;
+  --feedback-success-bg: #e8f7f0;
   --feedback-warning: #f59e0b;
   --feedback-warning-ink: #92400e;
+  --feedback-warning-bg: #fdf3e0;
   --feedback-error: #ef4444;
   --feedback-error-ink: #b91c1c;
+  --feedback-error-bg: #fdeceb;
+  --brand-primary-strong: #7a67dd;
 
   /* Typography */
   --type-display-xl-size: 6rem;
@@ -54,7 +58,9 @@
   --focus-ring-offset: 3px;
   --motion-duration-fast: 150ms;
   --motion-duration-base: 200ms;
+  --motion-duration-enter: 280ms;
   --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme inline {

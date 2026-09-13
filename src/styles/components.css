@@ -298,6 +298,79 @@
   box-shadow: 0 2px 8px rgb(60 49 91 / 0.2);
 }
 
+.ui-switch {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  cursor: pointer;
+}
+
+.ui-switch__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.ui-switch__track {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--brand-ink) 16%, var(--brand-surface-2));
+  transition: background-color var(--motion-duration-base) var(--motion-ease-standard);
+}
+
+.ui-switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background: var(--brand-surface-1);
+  box-shadow: 0 1px 4px rgb(60 49 91 / 0.28);
+  transition: transform var(--motion-duration-base) var(--motion-ease-emphasized);
+}
+
+.ui-switch__input:checked + .ui-switch__track {
+  background: var(--brand-primary);
+}
+
+.ui-switch__input:checked + .ui-switch__track .ui-switch__thumb {
+  transform: translateX(20px);
+}
+
+.ui-switch__input:focus-visible + .ui-switch__track {
+  outline: 3px solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.ui-switch__input:disabled + .ui-switch__track {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ui-switch__text {
+  display: grid;
+  gap: 2px;
+}
+
+.ui-switch__label {
+  font-size: var(--type-body-sm-size);
+  line-height: 1.35;
+}
+
+.ui-switch__description {
+  color: var(--brand-ink-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
 .ui-segmented {
   display: inline-grid;
   grid-auto-columns: minmax(max-content, 1fr);
@@ -337,6 +410,20 @@
   opacity: 0.45;
 }
 
+.ui-segmented__label--compact {
+  display: none;
+}
+
+@media (max-width: 40rem) {
+  .ui-segmented__label--full {
+    display: none;
+  }
+
+  .ui-segmented__label--compact {
+    display: inline;
+  }
+}
+
 .ui-dialog,
 .ui-sheet {
   width: 100%;
@@ -359,6 +446,70 @@
 .ui-sheet::backdrop {
   background: rgb(28 28 28 / 0.62);
   backdrop-filter: blur(4px);
+}
+
+.ui-dialog[open]::backdrop,
+.ui-sheet[open]::backdrop {
+  animation: ui-backdrop-in var(--motion-duration-base) var(--motion-ease-standard) both;
+}
+
+@keyframes ui-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.ui-dialog[open] .ui-dialog__surface {
+  animation: ui-dialog-in var(--motion-duration-enter) var(--motion-ease-standard) both;
+}
+
+.ui-sheet[open] .ui-sheet__surface {
+  animation: ui-sheet-in-right var(--motion-duration-enter) var(--motion-ease-standard)
+    both;
+}
+
+.ui-sheet--bottom[open] .ui-sheet__surface {
+  animation-name: ui-sheet-in-up;
+}
+
+@keyframes ui-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ui-sheet-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ui-sheet-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .ui-dialog__surface {
@@ -535,5 +686,9 @@
   .ui-dialog__footer .ui-button,
   .ui-sheet__footer .ui-button {
     width: 100%;
+  }
+
+  .ui-sheet--right[open] .ui-sheet__surface {
+    animation-name: ui-sheet-in-up;
   }
 }

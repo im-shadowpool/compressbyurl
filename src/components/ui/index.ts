@@ -11,4 +11,5 @@ export {
 export { Select, type SelectProps } from "./select";
 export { Sheet, type SheetProps } from "./sheet";
 export { Slider, type SliderProps } from "./slider";
+export { Switch, type SwitchProps } from "./switch";
 export { ToastProvider, useToast, type ToastOptions, type ToastVariant } from "./toast";

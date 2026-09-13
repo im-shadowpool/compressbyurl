@@ -58,20 +58,17 @@ export function ImageUrlIntake() {
   }
 
   return (
-    <div className="image-url-intake">
-      <div className="image-url-intake__intro">
-        <span className="tool-shell__icon" aria-hidden="true">
-          <MaterialSymbol name="add_link" size={32} />
+    <div className="mode-panel">
+      <header className="mode-panel__intro">
+        <span aria-hidden="true" className="mode-panel__icon">
+          <MaterialSymbol name="add_link" size={24} />
         </span>
         <div>
           <h2>Paste an image URL</h2>
-          <p>
-            We fetch one public image, then compression and downloads stay in your
-            browser.
-          </p>
+          <p>Fetch one public image, then compress and download it locally.</p>
         </div>
-      </div>
-      <form className="image-url-intake__form" onSubmit={handleSubmit}>
+      </header>
+      <form className="mode-panel__form" onSubmit={handleSubmit}>
         <Input
           autoCapitalize="none"
           autoComplete="url"
@@ -92,14 +89,14 @@ export function ImageUrlIntake() {
           {loading ? "Fetching image" : "Fetch image"}
         </Button>
       </form>
-      <p className="image-url-intake__privacy">
+      <p className="mode-panel__note">
         <MaterialSymbol name="shield_lock" size={20} />
         Direct browser fetch is tried first. The fallback blocks private networks,
         validates redirects and never forwards credentials.
       </p>
       {imported ? (
-        <div className="image-url-intake__result">
-          <p aria-live="polite" className="image-url-intake__success" role="status">
+        <div className="mode-panel__result">
+          <p aria-live="polite" className="mode-panel__success" role="status">
             <MaterialSymbol name="check_circle" size={20} />
             Image ready via{" "}
             {imported.method === "direct" ? "direct fetch" : "secure fallback"}.

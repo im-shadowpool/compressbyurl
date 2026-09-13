@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { MaterialSymbol } from "@/components/icons";
 import { SegmentedControl } from "@/components/ui";
-
-import { FileIntake } from "@/features/file-intake";
+import type { SeoToolPreset } from "@/config/seo-routes";
+import { CompressionSettingsProvider, FileIntake } from "@/features/file-intake";
 import { ImageUrlIntake } from "@/features/image-url";
 import { WebsiteScanIntake } from "@/features/website-scan";
+
+import { CompressionSettingsMenu } from "./settings-menu";
 
 const modes = [
   {
@@ -15,55 +17,85 @@ const modes = [
     shortLabel: "Files",
     value: "upload",
     icon: <MaterialSymbol name="upload_file" size={20} />,
-    title: "Drop your images here",
-    description: "Choose JPG, PNG, WebP or static AVIF files from your device.",
-    symbol: "add_photo_alternate",
-    requiresInternet: false,
   },
   {
     label: "Image URL",
     shortLabel: "Image URL",
     value: "image-url",
     icon: <MaterialSymbol name="link" size={20} />,
-    title: "Paste an image URL",
-    description: "Bring in one public image, then optimize it locally in your browser.",
-    symbol: "add_link",
-    requiresInternet: true,
   },
   {
     label: "Website URL",
     shortLabel: "Website",
     value: "website-url",
     icon: <MaterialSymbol name="travel_explore" size={20} />,
-    title: "Scan a webpage",
-    description: "Find heavy images, select the useful ones and prepare replacements.",
-    symbol: "search_insights",
-    requiresInternet: true,
   },
 ] as const;
 
 type ToolMode = (typeof modes)[number]["value"];
 
-export function ToolModeSwitcher() {
-  const [mode, setMode] = useState<ToolMode>("upload");
+interface ToolModeSwitcherProps {
+  preset?: SeoToolPreset;
+}
+
+export function ToolModeSwitcher({ preset }: ToolModeSwitcherProps = {}) {
+  const [mode, setMode] = useState<ToolMode>(preset?.sourceMode ?? "upload");
   const activeMode = modes.find((item) => item.value === mode) ?? modes[0];
+  const initialSettings = useMemo(
+    () =>
+      preset && preset.sourceMode !== "website-url"
+        ? {
+            compressionPreset: preset.compressionPreset,
+            outputFormat: preset.outputFormat,
+          }
+        : undefined,
+    [preset],
+  );
+  const featuredSettingsGroup =
+    preset?.sourceMode === "upload" && preset.settingsPanel !== "default"
+      ? preset.settingsPanel === "target-size"
+        ? "quality"
+        : preset.settingsPanel
+      : undefined;
 
   return (
-    <div className="tool-shell" id="tool">
-      <SegmentedControl
-        className="tool-shell__modes"
-        label="Choose image source"
-        onValueChange={setMode}
-        options={modes.map(({ icon, label, value }) => ({ icon, label, value }))}
-        value={mode}
-      />
-      {activeMode.value === "upload" ? <FileIntake /> : null}
-      {activeMode.value === "image-url" ? <ImageUrlIntake /> : null}
-      {activeMode.value === "website-url" ? <WebsiteScanIntake /> : null}
-      <div className="tool-shell__trust" id="privacy">
-        <MaterialSymbol name="lock" size={20} />
-        <span>Local files never leave your device.</span>
+    <CompressionSettingsProvider initialSettings={initialSettings}>
+      <div className="tool-shell" id="tool">
+        <CompressionSettingsMenu featuredGroup={featuredSettingsGroup} />
+        <div className="tool-shell__modes-row">
+          <SegmentedControl
+            className="tool-shell__modes"
+            label="Choose image source"
+            onValueChange={setMode}
+            options={modes.map(({ icon, label, shortLabel, value }) => ({
+              icon,
+              label,
+              shortLabel,
+              value,
+            }))}
+            value={mode}
+          />
+        </div>
+        <div className="tool-stage" key={mode}>
+          {activeMode.value === "upload" ? (
+            <FileIntake
+              acceptedFormats={
+                preset?.sourceMode === "upload" ? preset.acceptedFormats : undefined
+              }
+            />
+          ) : null}
+          {activeMode.value === "image-url" ? <ImageUrlIntake /> : null}
+          {activeMode.value === "website-url" ? (
+            <WebsiteScanIntake
+              purpose={preset?.sourceMode === "website-url" ? preset.purpose : undefined}
+            />
+          ) : null}
+        </div>
+        <div className="tool-shell__trust" id="privacy">
+          <MaterialSymbol name="lock" size={20} />
+          <span>Local files never leave your device.</span>
+        </div>
       </div>
-    </div>
+    </CompressionSettingsProvider>
   );
 }

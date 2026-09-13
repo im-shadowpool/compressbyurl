@@ -4,6 +4,7 @@ import Image from "next/image";
 import {
   type ChangeEvent,
   type DragEvent,
+  type MouseEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -13,42 +14,25 @@ import {
 
 import { MaterialSymbol } from "@/components/icons";
 import { MediaFrame } from "@/components/media";
-import {
-  Button,
-  Dialog,
-  IconButton,
-  Input,
-  SegmentedControl,
-  Select,
-  Slider,
-} from "@/components/ui";
+import { Button, Dialog, IconButton } from "@/components/ui";
 import {
   createDefaultCompressionSettings,
   createImageZip,
-  createOutputName,
-  COMPRESSION_PRESETS,
-  DEFAULT_FILE_TOOL_PREFERENCES,
-  FILE_TOOL_SETTINGS_VERSION,
-  findCompressionPreset,
-  loadFileToolPreferences,
-  resetFileToolPreferences,
   resolveBatchConcurrency,
-  resolveOutputFormat,
   resolveUniqueOutputName,
-  saveFileToolPreferences,
   type CompressionProgress,
-  type CompressionPresetId,
   type CompressionResult,
-  type FileToolPreferences,
-  type NamingSettings,
   type OutputFormat,
 } from "@/features/compression";
+import { classNames } from "@/lib/class-names";
 import { media } from "@/lib/media";
+import { STATIC_IMAGE_MIME_BY_FORMAT } from "@/types/image";
 import { CompressionWorkerClient, isCompressionWorkerError } from "@/workers";
 
+import { useCompressionSettings } from "./compression-settings";
 import { prepareImageFile, revokePreview } from "./create-preview";
 import { formatBytes } from "./format-bytes";
-import { FILE_INPUT_ACCEPT, type AcceptedImageFormat, type IntakeItem } from "./types";
+import type { AcceptedImageFormat, IntakeItem } from "./types";
 
 function createItemId() {
   return crypto.randomUUID();
@@ -75,7 +59,7 @@ type ZipState =
 
 function describeSavings(result: CompressionResult) {
   const magnitude = Math.abs(result.savedPercent).toFixed(1);
-  return result.savedBytes >= 0 ? `${magnitude}% smaller` : `${magnitude}% larger`;
+  return result.savedBytes >= 0 ? `−${magnitude}%` : `+${magnitude}%`;
 }
 
 function progressLabel(progress: CompressionProgress) {
@@ -87,30 +71,10 @@ function progressLabel(progress: CompressionProgress) {
   return "Preparing image";
 }
 
-function parseDimension(value: string) {
-  const number = Number(value);
-  return Number.isInteger(number) && number >= 1 && number <= 32_768 ? number : null;
-}
-
-function parseTargetBytes(value: string, unit: "kb" | "mb") {
-  const amount = Number(value);
-  if (!Number.isFinite(amount) || amount <= 0) return null;
-  const bytes = Math.round(amount * (unit === "mb" ? 1024 * 1024 : 1024));
-  return Number.isSafeInteger(bytes) && bytes <= 1024 * 1024 * 1024 ? bytes : null;
-}
-
-function outputFormatLabel(format: OutputFormat) {
-  return format === "keep" ? "Keep original" : formatName(format);
-}
-
 function formatName(format: AcceptedImageFormat) {
   if (format === "jpeg") return "JPEG";
   if (format === "webp") return "WebP";
   return format.toUpperCase();
-}
-
-function isOutputFormat(value: string): value is OutputFormat {
-  return ["keep", "jpeg", "png", "webp", "avif"].includes(value);
 }
 
 function actionLabel(input: AcceptedImageFormat, output: OutputFormat) {
@@ -120,12 +84,65 @@ function actionLabel(input: AcceptedImageFormat, output: OutputFormat) {
     : `Convert to ${formatName(finalFormat)}`;
 }
 
+function metadataLabel(metadata: CompressionResult["metadata"]) {
+  if (metadata === "stripped") return "Metadata removed";
+  if (metadata === "preserved") return "Metadata preserved";
+  return "Metadata partially preserved";
+}
+
 interface FileIntakeProps {
+  acceptedFormats?: readonly AcceptedImageFormat[];
   initialFiles?: readonly File[];
   replacementSources?: Readonly<Record<string, string>>;
 }
 
-export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps = {}) {
+const ALL_ACCEPTED_FORMATS = ["jpeg", "png", "webp", "avif"] as const;
+const LARGE_INTAKE_FILE_BYTES = 16 * 1024 * 1024;
+const HUGE_INTAKE_FILE_BYTES = 32 * 1024 * 1024;
+const LARGE_INTAKE_BATCH_BYTES = 64 * 1024 * 1024;
+
+function resolveIntakeConcurrency(files: readonly File[]) {
+  if (files.length === 0) return 0;
+  const largestFile = Math.max(...files.map((file) => file.size));
+  if (largestFile >= HUGE_INTAKE_FILE_BYTES) return 1;
+
+  const totalBytes = files.reduce((total, file) => total + file.size, 0);
+  const available = Math.max(1, Math.floor((navigator.hardwareConcurrency || 2) / 2));
+  const normalLimit = Math.min(3, available, files.length);
+  return largestFile >= LARGE_INTAKE_FILE_BYTES || totalBytes >= LARGE_INTAKE_BATCH_BYTES
+    ? Math.min(2, normalLimit)
+    : normalLimit;
+}
+
+async function prepareFileBatch(
+  files: readonly File[],
+  acceptedFormats: readonly AcceptedImageFormat[],
+) {
+  const prepared: Array<IntakeItem | null> = files.map(() => null);
+  let nextIndex = 0;
+  const concurrency = resolveIntakeConcurrency(files);
+
+  await Promise.all(
+    Array.from({ length: concurrency }, async () => {
+      while (nextIndex < files.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+        const file = files[index];
+        if (!file) continue;
+        prepared[index] = await prepareImageFile(file, createItemId(), acceptedFormats);
+      }
+    }),
+  );
+
+  return prepared.filter((item): item is IntakeItem => item !== null);
+}
+
+export function FileIntake({
+  acceptedFormats = ALL_ACCEPTED_FORMATS,
+  initialFiles,
+  replacementSources,
+}: FileIntakeProps = {}) {
+  const settings = useCompressionSettings();
   const inputRef = useRef<HTMLInputElement>(null);
   const browseButtonRef = useRef<HTMLButtonElement>(null);
   const regionRef = useRef<HTMLElement>(null);
@@ -145,124 +162,39 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
   const [imageActions, setImageActions] = useState<
     Record<string, CompressionActionState>
   >({});
-  const [resizeEnabled, setResizeEnabled] = useState(false);
-  const [outputFormat, setOutputFormat] = useState<OutputFormat>("keep");
-  const [jpegBackground, setJpegBackground] = useState("#ffffff");
-  const [compressionMode, setCompressionMode] = useState<
-    "quality" | "smart" | "target-size"
-  >("smart");
-  const [quality, setQuality] = useState(82);
-  const [targetPreset, setTargetPreset] = useState<
-    "100" | "200" | "500" | "1024" | "custom"
-  >("100");
-  const [customTarget, setCustomTarget] = useState("250");
-  const [customTargetUnit, setCustomTargetUnit] = useState<"kb" | "mb">("kb");
-  const [allowDimensionReduction, setAllowDimensionReduction] = useState(false);
-  const [customNaming, setCustomNaming] = useState(false);
-  const [namePrefix, setNamePrefix] = useState("");
-  const [nameSuffix, setNameSuffix] = useState("-compressed");
-  const [namePattern, setNamePattern] = useState("{name}");
-  const [sequenceStart, setSequenceStart] = useState("1");
-  const [sequencePadding, setSequencePadding] = useState("2");
-  const [nameCase, setNameCase] = useState<"lowercase" | "unchanged" | "uppercase">(
-    "unchanged",
-  );
-  const [resizeMode, setResizeMode] = useState<"exact" | "max">("max");
-  const [preserveAspectRatio, setPreserveAspectRatio] = useState(true);
-  const [maxWidth, setMaxWidth] = useState("1920");
-  const [maxHeight, setMaxHeight] = useState("1080");
   const [pendingBatches, setPendingBatches] = useState(0);
-  const [batchConcurrency, setBatchConcurrency] = useState(0);
   const [batchRunning, setBatchRunning] = useState(false);
   const [bulkDownloadMessage, setBulkDownloadMessage] = useState<string | null>(null);
   const [zipState, setZipState] = useState<ZipState>({ status: "idle" });
-  const [stripMetadata, setStripMetadata] = useState(true);
   const [compareItemId, setCompareItemId] = useState<string | null>(null);
-  const [activePreset, setActivePreset] = useState<CompressionPresetId>("custom");
-  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
-  const [preferencesNotice, setPreferencesNotice] = useState<string | null>(null);
+  const [settingsNotice, setSettingsNotice] = useState(false);
 
-  useEffect(() => {
-    const preferences = loadFileToolPreferences(window.localStorage);
-    if (preferences) {
-      setActivePreset(preferences.activePreset);
-      setAllowDimensionReduction(preferences.allowDimensionReduction);
-      setCompressionMode(preferences.compressionMode);
-      setCustomNaming(preferences.customNaming);
-      setCustomTarget(preferences.customTarget);
-      setCustomTargetUnit(preferences.customTargetUnit);
-      setJpegBackground(preferences.jpegBackground);
-      setMaxHeight(preferences.maxHeight);
-      setMaxWidth(preferences.maxWidth);
-      setNameCase(preferences.nameCase);
-      setNamePattern(preferences.namePattern);
-      setNamePrefix(preferences.namePrefix);
-      setNameSuffix(preferences.nameSuffix);
-      setOutputFormat(preferences.outputFormat);
-      setPreserveAspectRatio(preferences.preserveAspectRatio);
-      setQuality(preferences.quality);
-      setResizeEnabled(preferences.resizeEnabled);
-      setResizeMode(preferences.resizeMode);
-      setSequencePadding(preferences.sequencePadding);
-      setSequenceStart(preferences.sequenceStart);
-      setStripMetadata(preferences.stripMetadata);
-      setTargetPreset(preferences.targetPreset);
-    }
-    setPreferencesLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!preferencesLoaded) return;
-    saveFileToolPreferences(window.localStorage, {
-      activePreset,
-      allowDimensionReduction,
-      compressionMode,
-      customNaming,
-      customTarget,
-      customTargetUnit,
-      jpegBackground,
-      maxHeight,
-      maxWidth,
-      nameCase,
-      namePattern,
-      namePrefix,
-      nameSuffix,
-      outputFormat,
-      preserveAspectRatio,
-      quality,
-      resizeEnabled,
-      resizeMode,
-      sequencePadding,
-      sequenceStart,
-      stripMetadata,
-      targetPreset,
-      version: FILE_TOOL_SETTINGS_VERSION,
-    });
-  }, [
-    activePreset,
+  const {
     allowDimensionReduction,
     compressionMode,
     customNaming,
-    customTarget,
-    customTargetUnit,
     jpegBackground,
-    maxHeight,
-    maxWidth,
     nameCase,
     namePattern,
     namePrefix,
     nameSuffix,
+    namingInputError,
     outputFormat,
-    preferencesLoaded,
+    parsedMaxHeight,
+    parsedMaxWidth,
+    parsedSequencePadding,
+    parsedSequenceStart,
     preserveAspectRatio,
     quality,
     resizeEnabled,
+    resizeInputError,
     resizeMode,
-    sequencePadding,
-    sequenceStart,
+    revision,
+    setIntakeSample,
     stripMetadata,
-    targetPreset,
-  ]);
+    targetBytes,
+    targetInputError,
+  } = settings;
 
   useEffect(() => {
     const objectUrls = previewUrls.current;
@@ -294,12 +226,17 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
     outputUrls.current.delete(id);
   }
 
-  function resetGeneratedOutputs() {
+  const resetZip = useCallback(() => {
+    if (zipUrl.current) URL.revokeObjectURL(zipUrl.current);
+    zipUrl.current = null;
+    setZipState({ status: "idle" });
+  }, []);
+
+  const resetGeneratedOutputs = useCallback(() => {
     batchGeneration.current += 1;
     batchClients.current.forEach((client) => client.dispose());
     batchClients.current.clear();
     setBatchRunning(false);
-    setBatchConcurrency(0);
     setBulkDownloadMessage(null);
     resetZip();
     setCompareItemId(null);
@@ -308,66 +245,15 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
     outputUrls.current.forEach((outputUrl) => URL.revokeObjectURL(outputUrl));
     outputUrls.current.clear();
     setImageActions({});
-  }
+  }, [resetZip]);
 
-  function resetAfterSettingsChange() {
+  const appliedRevision = useRef(revision);
+  useEffect(() => {
+    if (appliedRevision.current === revision) return;
+    appliedRevision.current = revision;
+    setSettingsNotice(true);
     resetGeneratedOutputs();
-    setActivePreset("custom");
-    setPreferencesNotice(null);
-  }
-
-  function applyPreferences(preferences: FileToolPreferences) {
-    setActivePreset(preferences.activePreset);
-    setAllowDimensionReduction(preferences.allowDimensionReduction);
-    setCompressionMode(preferences.compressionMode);
-    setCustomNaming(preferences.customNaming);
-    setCustomTarget(preferences.customTarget);
-    setCustomTargetUnit(preferences.customTargetUnit);
-    setJpegBackground(preferences.jpegBackground);
-    setMaxHeight(preferences.maxHeight);
-    setMaxWidth(preferences.maxWidth);
-    setNameCase(preferences.nameCase);
-    setNamePattern(preferences.namePattern);
-    setNamePrefix(preferences.namePrefix);
-    setNameSuffix(preferences.nameSuffix);
-    setOutputFormat(preferences.outputFormat);
-    setPreserveAspectRatio(preferences.preserveAspectRatio);
-    setQuality(preferences.quality);
-    setResizeEnabled(preferences.resizeEnabled);
-    setResizeMode(preferences.resizeMode);
-    setSequencePadding(preferences.sequencePadding);
-    setSequenceStart(preferences.sequenceStart);
-    setStripMetadata(preferences.stripMetadata);
-    setTargetPreset(preferences.targetPreset);
-  }
-
-  function resetSavedPreferences() {
-    resetGeneratedOutputs();
-    resetFileToolPreferences(window.localStorage);
-    applyPreferences(DEFAULT_FILE_TOOL_PREFERENCES);
-    setPreferencesNotice("Settings reset to the private defaults.");
-  }
-
-  function resetZip() {
-    if (zipUrl.current) URL.revokeObjectURL(zipUrl.current);
-    zipUrl.current = null;
-    setZipState({ status: "idle" });
-  }
-
-  function resolveActionNameCollisions(actions: Record<string, CompressionActionState>) {
-    const usedNames = new Set<string>();
-    const resolved = { ...actions };
-    for (const item of items) {
-      const action = resolved[item.id];
-      if (action?.status !== "completed") continue;
-      const outputName = resolveUniqueOutputName(action.baseOutputName, usedNames);
-      resolved[item.id] = {
-        ...action,
-        result: { ...action.result, outputName },
-      };
-    }
-    return resolved;
-  }
+  }, [resetGeneratedOutputs, revision]);
 
   async function compressImage(
     item: Extract<IntakeItem, { status: "ready" }>,
@@ -377,6 +263,7 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
     activeControllers.current.get(item.id)?.abort();
     const controller = new AbortController();
     activeControllers.current.set(item.id, controller);
+    setSettingsNotice(false);
     setImageActions((current) => ({
       ...current,
       [item.id]: {
@@ -390,13 +277,11 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
         assignedClient ?? workerClient.current ?? new CompressionWorkerClient();
       if (!assignedClient) workerClient.current = client;
       await client.waitUntilReady();
-      const settings = createDefaultCompressionSettings();
-      const parsedWidth = parseDimension(maxWidth);
-      const parsedHeight = parseDimension(maxHeight);
+      const defaults = createDefaultCompressionSettings();
       if (
         resizeEnabled &&
-        ((resizeMode === "exact" && (!parsedWidth || !parsedHeight)) ||
-          (resizeMode === "max" && !parsedWidth && !parsedHeight))
+        ((resizeMode === "exact" && (!parsedMaxWidth || !parsedMaxHeight)) ||
+          (resizeMode === "max" && !parsedMaxWidth && !parsedMaxHeight))
       ) {
         setImageActions((current) => ({
           ...current,
@@ -408,24 +293,21 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
         return;
       }
       const resize = !resizeEnabled
-        ? settings.resize
+        ? defaults.resize
         : resizeMode === "exact"
           ? {
-              height: parsedHeight ?? 1,
+              height: parsedMaxHeight ?? 1,
               maintainAspectRatio: preserveAspectRatio,
               mode: "exact" as const,
               preventUpscale: true,
-              width: parsedWidth ?? 1,
+              width: parsedMaxWidth ?? 1,
             }
           : {
-              maxHeight: parsedHeight,
-              maxWidth: parsedWidth,
+              maxHeight: parsedMaxHeight,
+              maxWidth: parsedMaxWidth,
               mode: "max" as const,
               preventUpscale: true,
             };
-      const customTargetBytes = parseTargetBytes(customTarget, customTargetUnit);
-      const targetBytes =
-        targetPreset === "custom" ? customTargetBytes : Number(targetPreset) * 1024;
       if (compressionMode === "target-size" && !targetBytes) {
         setImageActions((current) => ({
           ...current,
@@ -436,8 +318,6 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
         }));
         return;
       }
-      const parsedSequenceStart = Number(sequenceStart);
-      const parsedSequencePadding = Number(sequencePadding);
       if (
         customNaming &&
         (!Number.isInteger(parsedSequenceStart) ||
@@ -459,7 +339,7 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
       const result = await client.compress(
         {
           settings: {
-            ...settings,
+            ...defaults,
             jpegBackground,
             naming: customNaming
               ? {
@@ -471,7 +351,7 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
                   startNumber: parsedSequenceStart,
                   suffix: nameSuffix,
                 }
-              : settings.naming,
+              : defaults.naming,
             outputFormat,
             resize,
             stripMetadata,
@@ -548,6 +428,21 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
     }
   }
 
+  function resolveActionNameCollisions(actions: Record<string, CompressionActionState>) {
+    const usedNames = new Set<string>();
+    const resolved = { ...actions };
+    for (const item of items) {
+      const action = resolved[item.id];
+      if (action?.status !== "completed") continue;
+      const outputName = resolveUniqueOutputName(action.baseOutputName, usedNames);
+      resolved[item.id] = {
+        ...action,
+        result: { ...action.result, outputName },
+      };
+    }
+    return resolved;
+  }
+
   function cancelCompression(id: string) {
     activeControllers.current.get(id)?.abort();
   }
@@ -568,7 +463,6 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
       ),
     );
     setBatchRunning(false);
-    setBatchConcurrency(0);
   }
 
   function downloadAllIndividually() {
@@ -673,7 +567,6 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
       () => new CompressionWorkerClient(),
     );
     clients.forEach((client) => batchClients.current.add(client));
-    setBatchConcurrency(concurrency);
     setBatchRunning(true);
     setImageActions(
       Object.fromEntries(readyItems.map((item) => [item.id, { status: "queued" }])),
@@ -702,182 +595,35 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
       });
       if (mounted.current && runGeneration === batchGeneration.current) {
         setBatchRunning(false);
-        setBatchConcurrency(0);
       }
     }
   }
 
-  function updateResizeEnabled(enabled: boolean) {
-    resetAfterSettingsChange();
-    setResizeEnabled(enabled);
-  }
+  const addFiles = useCallback(
+    async (files: File[]) => {
+      if (files.length === 0) return;
 
-  function updateOutputFormat(value: string) {
-    if (!isOutputFormat(value)) return;
-    resetAfterSettingsChange();
-    setOutputFormat(value);
-  }
+      const intakeGeneration = generation.current;
+      setPendingBatches((count) => count + 1);
+      try {
+        const results = await prepareFileBatch(files, acceptedFormats);
 
-  function updateJpegBackground(value: string) {
-    resetAfterSettingsChange();
-    setJpegBackground(value);
-  }
+        if (!mounted.current || intakeGeneration !== generation.current) {
+          results.forEach(revokePreview);
+          return;
+        }
 
-  function updateQuality(value: string) {
-    const nextQuality = Number(value);
-    if (!Number.isInteger(nextQuality) || nextQuality < 1 || nextQuality > 100) return;
-    resetAfterSettingsChange();
-    setQuality(nextQuality);
-  }
-
-  function updateCompressionMode(mode: "quality" | "smart" | "target-size") {
-    resetAfterSettingsChange();
-    setCompressionMode(mode);
-  }
-
-  function updateTargetPreset(preset: "100" | "200" | "500" | "1024" | "custom") {
-    resetAfterSettingsChange();
-    setTargetPreset(preset);
-  }
-
-  function updateCustomTarget(value: string) {
-    resetAfterSettingsChange();
-    setCustomTarget(value);
-  }
-
-  function updateCustomTargetUnit(value: string) {
-    if (value !== "kb" && value !== "mb") return;
-    resetAfterSettingsChange();
-    setCustomTargetUnit(value);
-  }
-
-  function updateDimensionReduction(enabled: boolean) {
-    resetAfterSettingsChange();
-    setAllowDimensionReduction(enabled);
-  }
-
-  function updateCustomNaming(enabled: boolean) {
-    resetAfterSettingsChange();
-    setCustomNaming(enabled);
-  }
-
-  function updateStripMetadata(enabled: boolean) {
-    resetAfterSettingsChange();
-    setStripMetadata(enabled);
-  }
-
-  function updateNamePrefix(value: string) {
-    resetAfterSettingsChange();
-    setNamePrefix(value);
-  }
-
-  function updateNameSuffix(value: string) {
-    resetAfterSettingsChange();
-    setNameSuffix(value);
-  }
-
-  function updateNamePattern(value: string) {
-    resetAfterSettingsChange();
-    setNamePattern(value);
-  }
-
-  function updateSequenceStart(value: string) {
-    resetAfterSettingsChange();
-    setSequenceStart(value);
-  }
-
-  function updateSequencePadding(value: string) {
-    resetAfterSettingsChange();
-    setSequencePadding(value);
-  }
-
-  function updateNameCase(value: string) {
-    if (!["lowercase", "unchanged", "uppercase"].includes(value)) return;
-    resetAfterSettingsChange();
-    setNameCase(value as "lowercase" | "unchanged" | "uppercase");
-  }
-
-  function updateResizeMode(mode: "exact" | "max") {
-    resetAfterSettingsChange();
-    setResizeMode(mode);
-  }
-
-  function updateAspectRatio(preserve: boolean) {
-    resetAfterSettingsChange();
-    setPreserveAspectRatio(preserve);
-  }
-
-  function updateMaxWidth(value: string) {
-    resetAfterSettingsChange();
-    setMaxWidth(value);
-  }
-
-  function updateMaxHeight(value: string) {
-    resetAfterSettingsChange();
-    setMaxHeight(value);
-  }
-
-  function applyPreset(value: string) {
-    const preset = COMPRESSION_PRESETS.find((candidate) => candidate.id === value);
-    if (!preset) {
-      setActivePreset("custom");
-      return;
-    }
-    resetGeneratedOutputs();
-    setPreferencesNotice(null);
-    setActivePreset(preset.id);
-    setOutputFormat(preset.outputFormat);
-    setStripMetadata(true);
-    setCompressionMode(preset.mode.mode);
-    if (preset.mode.mode === "quality") setQuality(preset.mode.quality);
-    if (preset.mode.mode === "target-size") {
-      setTargetPreset(
-        String(preset.mode.targetKilobytes) as "100" | "200" | "500" | "1024",
-      );
-      setAllowDimensionReduction(true);
-    } else {
-      setAllowDimensionReduction(false);
-    }
-
-    if (preset.resize.mode === "original") {
-      setResizeEnabled(false);
-      return;
-    }
-    setResizeEnabled(true);
-    setResizeMode(preset.resize.mode);
-    if (preset.resize.mode === "max") {
-      setMaxWidth(preset.resize.maxWidth ? String(preset.resize.maxWidth) : "");
-      setMaxHeight(preset.resize.maxHeight ? String(preset.resize.maxHeight) : "");
-    } else {
-      setMaxWidth(String(preset.resize.width));
-      setMaxHeight(String(preset.resize.height));
-      setPreserveAspectRatio(preset.resize.maintainAspectRatio);
-    }
-  }
-
-  const addFiles = useCallback(async (files: File[]) => {
-    if (files.length === 0) return;
-
-    const intakeGeneration = generation.current;
-    setPendingBatches((count) => count + 1);
-    try {
-      const results = await Promise.all(
-        files.map((file) => prepareImageFile(file, createItemId())),
-      );
-
-      if (!mounted.current || intakeGeneration !== generation.current) {
-        results.forEach(revokePreview);
-        return;
+        results.forEach((item) => {
+          if (item.status === "ready") previewUrls.current.add(item.previewUrl);
+        });
+        setItems((current) => [...current, ...results]);
+        setSettingsNotice(false);
+      } finally {
+        setPendingBatches((count) => Math.max(0, count - 1));
       }
-
-      results.forEach((item) => {
-        if (item.status === "ready") previewUrls.current.add(item.previewUrl);
-      });
-      setItems((current) => [...current, ...results]);
-    } finally {
-      setPendingBatches((count) => Math.max(0, count - 1));
-    }
-  }, []);
+    },
+    [acceptedFormats],
+  );
 
   useEffect(() => {
     if (!initialFiles?.length || consumedInitialFiles.current) return;
@@ -898,9 +644,31 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
     return () => window.removeEventListener("paste", handlePaste);
   }, [addFiles]);
 
+  const sampleItem = items.find(
+    (item): item is Extract<IntakeItem, { status: "ready" }> =>
+      item.status === "ready" && item.format !== "jpeg",
+  );
+  useEffect(() => {
+    setIntakeSample({
+      hasNonJpegSources: Boolean(sampleItem),
+      previewUrl: sampleItem?.previewUrl ?? null,
+    });
+  }, [sampleItem, setIntakeSample]);
+
+  useEffect(
+    () => () => setIntakeSample({ hasNonJpegSources: false, previewUrl: null }),
+    [setIntakeSample],
+  );
+
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     void addFiles(Array.from(event.target.files ?? []));
     event.target.value = "";
+  }
+
+  function handleDropzoneClick(event: MouseEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement;
+    if (target.closest("button, a, input, label")) return;
+    inputRef.current?.click();
   }
 
   function handleDragEnter(event: DragEvent<HTMLDivElement>) {
@@ -954,6 +722,7 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
     resetZip();
     if (batchRunning) cancelBatch();
     setCompareItemId(null);
+    setSettingsNotice(false);
     generation.current += 1;
     activeControllers.current.forEach((controller) => controller.abort());
     activeControllers.current.clear();
@@ -968,41 +737,6 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
 
   const readyCount = items.filter((item) => item.status === "ready").length;
   const rejectedCount = items.length - readyCount;
-  const parsedWidth = parseDimension(maxWidth);
-  const parsedHeight = parseDimension(maxHeight);
-  const resizeInputError =
-    resizeEnabled &&
-    ((resizeMode === "exact" && (!parsedWidth || !parsedHeight)) ||
-      (resizeMode === "max" && !parsedWidth && !parsedHeight));
-  const transparencyWarning =
-    outputFormat === "jpeg" &&
-    items.some((item) => item.status === "ready" && item.format !== "jpeg");
-  const jpegPreviewItem = items.find(
-    (item) => item.status === "ready" && item.format !== "jpeg",
-  );
-  const qualityAvailable =
-    outputFormat !== "png" &&
-    !(
-      outputFormat === "keep" &&
-      readyCount > 0 &&
-      items
-        .filter((item) => item.status === "ready")
-        .every((item) => item.format === "png")
-    );
-  const customTargetBytes = parseTargetBytes(customTarget, customTargetUnit);
-  const targetBytes =
-    targetPreset === "custom" ? customTargetBytes : Number(targetPreset) * 1024;
-  const targetInputError = compressionMode === "target-size" && !targetBytes;
-  const parsedSequenceStart = Number(sequenceStart);
-  const parsedSequencePadding = Number(sequencePadding);
-  const namingInputError =
-    customNaming &&
-    (!Number.isInteger(parsedSequenceStart) ||
-      parsedSequenceStart < 0 ||
-      parsedSequenceStart > 999_999 ||
-      !Number.isInteger(parsedSequencePadding) ||
-      parsedSequencePadding < 1 ||
-      parsedSequencePadding > 6);
   const batchSummary = useMemo(() => {
     let afterBytes = 0;
     let beforeBytes = 0;
@@ -1031,37 +765,30 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
       successCount,
     };
   }, [imageActions, items]);
-  const showBatchSummary =
-    readyCount > 1 && batchSummary.successCount + batchSummary.errorCount > 0;
-  const namingSettings: NamingSettings = customNaming
-    ? {
-        letterCase: nameCase,
-        mode: "pattern",
-        padding: Number.isInteger(parsedSequencePadding) ? parsedSequencePadding : 1,
-        pattern: namePattern,
-        prefix: namePrefix,
-        startNumber: Number.isInteger(parsedSequenceStart) ? parsedSequenceStart : 1,
-        suffix: nameSuffix,
-      }
-    : { mode: "original" };
-  const namingPreviewItem = items.find((item) => item.status === "ready");
-  const namingPreview = namingPreviewItem
-    ? createOutputName(
-        namingPreviewItem.name,
-        resolveOutputFormat(namingPreviewItem.format, outputFormat),
-        namingSettings,
-        {
-          dimensions: {
-            height: namingPreviewItem.height,
-            width: namingPreviewItem.width,
-          },
-          sequence: 0,
-        },
-      )
-    : createOutputName("holiday-photo.jpg", "jpeg", namingSettings, {
-        dimensions: { height: 800, width: 1200 },
-        sequence: 0,
-      });
+
+  const everyReadyCompleted =
+    readyCount > 0 &&
+    items
+      .filter((item) => item.status === "ready")
+      .every((item) => imageActions[item.id]?.status === "completed");
+  const canArchive =
+    batchSummary.successCount > 1 ||
+    Boolean(replacementSources && batchSummary.successCount > 0);
+  const statusPrimary = batchRunning
+    ? `Optimizing ${Math.min(
+        batchSummary.successCount + batchSummary.errorCount + 1,
+        readyCount,
+      )} of ${readyCount}`
+    : batchSummary.successCount > 0
+      ? `${batchSummary.successCount} optimized${batchSummary.errorCount > 0 ? ` · ${batchSummary.errorCount} failed` : ""}`
+      : `${readyCount} ready${rejectedCount > 0 ? ` · ${rejectedCount} rejected` : ""}`;
+  const statusSecondary =
+    batchSummary.successCount > 0 && batchSummary.beforeBytes > 0
+      ? batchSummary.savedBytes >= 0
+        ? `${formatBytes(batchSummary.beforeBytes)} → ${formatBytes(batchSummary.afterBytes)} · ${batchSummary.savedPercent.toFixed(1)}% smaller`
+        : `${formatBytes(batchSummary.beforeBytes)} → ${formatBytes(batchSummary.afterBytes)} · ${Math.abs(batchSummary.savedPercent).toFixed(1)}% larger`
+      : "Processed locally · nothing is uploaded";
+
   const comparisonItem = items.find(
     (item): item is Extract<IntakeItem, { status: "ready" }> =>
       item.status === "ready" && item.id === compareItemId,
@@ -1071,493 +798,94 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
     comparisonItem && comparisonAction?.status === "completed"
       ? { action: comparisonAction, item: comparisonItem }
       : null;
-  const selectedPreset = findCompressionPreset(activePreset);
+  const actionsDisabled = Boolean(
+    resizeInputError || targetInputError || namingInputError,
+  );
 
   return (
-    <section ref={regionRef} className="file-intake" aria-labelledby="file-intake-title">
-      <div
-        className={`file-dropzone${dragging ? " file-dropzone--active" : ""}`}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={handleDrop}
-      >
-        <MediaFrame
-          asset={media.hero.compressionFlow}
-          className="file-dropzone__media"
-          priority
-          sizes="(max-width: 640px) 112px, 152px"
-        />
-        <h2 id="file-intake-title">Drop or paste images here</h2>
-        <p>JPEG, PNG, WebP or static AVIF. Paste, browse or add several files at once.</p>
-        <input
-          ref={inputRef}
-          accept={FILE_INPUT_ACCEPT}
-          hidden
-          multiple
-          onChange={handleInputChange}
-          type="file"
-        />
-        <Button
-          ref={browseButtonRef}
-          leadingIcon={<MaterialSymbol name="folder_open" size={20} />}
-          onClick={() => inputRef.current?.click()}
+    <section ref={regionRef} aria-labelledby="file-intake-title" className="file-intake">
+      <h2 className="visually-hidden" id="file-intake-title">
+        Upload and compress images
+      </h2>
+      <input
+        ref={inputRef}
+        accept={acceptedFormats
+          .map((format) => STATIC_IMAGE_MIME_BY_FORMAT[format])
+          .join(",")}
+        hidden
+        multiple
+        onChange={handleInputChange}
+        type="file"
+      />
+
+      {items.length === 0 ? (
+        <div
+          className={classNames(
+            "file-dropzone motion-safe-transition",
+            dragging && "file-dropzone--active",
+          )}
+          onClick={handleDropzoneClick}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={handleDrop}
         >
-          Browse files
-        </Button>
-      </div>
-
-      <details className="file-intake__settings">
-        <summary>
-          <span>
-            <MaterialSymbol name="bookmark" size={20} />
-            Preset
-          </span>
-          <span>{selectedPreset?.label ?? "Custom settings"}</span>
-        </summary>
-        <div className="file-intake__settings-body">
-          <Select
-            hint="Choose a starting point, then adjust any setting below."
-            label="Use case"
-            onChange={(event) => applyPreset(event.target.value)}
-            options={[
-              { label: "Custom settings", value: "custom" },
-              ...COMPRESSION_PRESETS.map((preset) => ({
-                label: preset.label,
-                value: preset.id,
-              })),
-            ]}
-            value={activePreset}
+          <MediaFrame
+            asset={media.hero.compressionFlow}
+            className="file-dropzone__art"
+            sizes="(max-width: 640px) 96px, 120px"
           />
-          {selectedPreset ? (
-            <p className="file-intake__preset-description">
-              {selectedPreset.description}
-            </p>
-          ) : null}
-          <div className="file-intake__preset-storage">
-            <div>
-              <strong>Saved on this device</strong>
-              <span>
-                Preferences stay in this browser. Files and image data are never saved.
-              </span>
-            </div>
-            <Button onClick={resetSavedPreferences} variant="ghost">
-              Reset settings
-            </Button>
-          </div>
-          {preferencesNotice ? (
-            <p aria-live="polite" className="file-intake__setting-note" role="status">
-              {preferencesNotice}
-            </p>
-          ) : null}
-        </div>
-      </details>
-
-      <details className="file-intake__settings">
-        <summary>
-          <span>
-            <MaterialSymbol name="swap_horiz" size={20} />
-            Output format
-          </span>
-          <span>{outputFormatLabel(outputFormat)}</span>
-        </summary>
-        <div className="file-intake__settings-body">
-          <Select
-            hint="Keep original preserves each file's format. Conversion stays on this device."
-            label="Save as"
-            onChange={(event) => updateOutputFormat(event.target.value)}
-            options={[
-              { label: "Keep original format", value: "keep" },
-              { label: "JPEG", value: "jpeg" },
-              { label: "PNG", value: "png" },
-              { label: "WebP", value: "webp" },
-              { label: "AVIF", value: "avif" },
-            ]}
-            value={outputFormat}
-          />
-          {outputFormat === "jpeg" ? (
-            <div className="file-intake__jpeg-background">
-              <label>
-                <span>Transparency background</span>
-                <span className="file-intake__color-control">
-                  <input
-                    aria-label="JPEG background color"
-                    onInput={(event) => updateJpegBackground(event.currentTarget.value)}
-                    type="color"
-                    value={jpegBackground}
-                  />
-                  <output>{jpegBackground.toUpperCase()}</output>
-                </span>
-              </label>
-              <div
-                className="file-intake__background-preview"
-                style={{ backgroundColor: jpegBackground }}
-              >
-                {jpegPreviewItem?.status === "ready" ? (
-                  <Image
-                    alt={`Preview of ${jpegPreviewItem.name} on ${jpegBackground}`}
-                    height={96}
-                    src={jpegPreviewItem.previewUrl}
-                    unoptimized
-                    width={96}
-                  />
-                ) : (
-                  <MaterialSymbol name="image" size={32} />
-                )}
-              </div>
-              <p>Transparent pixels use this color in the JPEG.</p>
-            </div>
-          ) : null}
-          {transparencyWarning ? (
-            <p className="file-intake__format-warning" role="status">
-              <MaterialSymbol name="opacity" size={20} />
-              JPEG does not support transparency. Transparent areas will become{" "}
-              {jpegBackground.toUpperCase()}.
-            </p>
-          ) : null}
-        </div>
-      </details>
-
-      <details className="file-intake__settings">
-        <summary>
-          <span>
-            <MaterialSymbol name="shield" size={20} />
-            Privacy & metadata
-          </span>
-          <span>{stripMetadata ? "Metadata removed" : "Preserve when possible"}</span>
-        </summary>
-        <div className="file-intake__settings-body">
-          <label className="file-intake__resize-toggle">
-            <input
-              checked={stripMetadata}
-              onChange={(event) => updateStripMetadata(event.target.checked)}
-              type="checkbox"
-            />
-            <span>
-              <strong>Remove metadata (recommended)</strong>
-              <small>
-                Removes camera details, comments, color profiles, and GPS location data.
-              </small>
-            </span>
-          </label>
-          {!stripMetadata ? (
-            <p className="file-intake__metadata-warning">
-              JPEG-to-JPEG can preserve EXIF, IPTC, ICC, comments, and GPS data. Other
-              format paths may only preserve part of the original metadata.
-            </p>
-          ) : null}
-        </div>
-      </details>
-
-      <details className="file-intake__settings">
-        <summary>
-          <span>
-            <MaterialSymbol name="auto_awesome" size={20} />
-            Compression mode
-          </span>
-          <span>
-            {compressionMode === "smart"
-              ? "Smart"
-              : compressionMode === "quality"
-                ? "Custom quality"
-                : "Target size"}
-          </span>
-        </summary>
-        <div className="file-intake__settings-body">
-          <SegmentedControl
-            label="Compression mode"
-            onValueChange={updateCompressionMode}
-            options={[
-              { label: "Smart", value: "smart" },
-              { label: "Quality", value: "quality" },
-              { label: "Target size", value: "target-size" },
-            ]}
-            value={compressionMode}
-          />
-          <p className="file-intake__setting-note">
-            {compressionMode === "smart"
-              ? "Recommended settings keep proportions and transparency-capable formats, never enlarge images, and remove metadata."
-              : compressionMode === "quality"
-                ? "Choose the balance between visual detail and file size."
-                : "We find the highest tested quality that fits your limit."}
+          <h3 className="file-dropzone__title">Drop or paste images here</h3>
+          <p className="file-dropzone__copy">
+            {acceptedFormats.length === ALL_ACCEPTED_FORMATS.length
+              ? "JPEG, PNG, WebP or static AVIF. Add one file or a whole batch."
+              : `${acceptedFormats.map(formatName).join(", ")} only. Add one file or a whole batch.`}
           </p>
-          {compressionMode === "target-size" ? (
-            <div className="file-intake__target-settings">
-              <SegmentedControl
-                label="Target size preset"
-                onValueChange={updateTargetPreset}
-                options={[
-                  { label: "100 KB", value: "100" },
-                  { label: "200 KB", value: "200" },
-                  { label: "500 KB", value: "500" },
-                  { label: "1 MB", value: "1024" },
-                  { label: "Custom", value: "custom" },
-                ]}
-                value={targetPreset}
-              />
-              {targetPreset === "custom" ? (
-                <div className="file-intake__target-custom">
-                  <Input
-                    error={
-                      customTargetBytes
-                        ? undefined
-                        : "Enter a size greater than zero and no larger than 1 GB."
-                    }
-                    inputMode="decimal"
-                    label="Target size"
-                    min="0.01"
-                    onChange={(event) => updateCustomTarget(event.target.value)}
-                    step="0.01"
-                    type="number"
-                    value={customTarget}
-                  />
-                  <Select
-                    label="Unit"
-                    onChange={(event) => updateCustomTargetUnit(event.target.value)}
-                    options={[
-                      { label: "KB", value: "kb" },
-                      { label: "MB", value: "mb" },
-                    ]}
-                    value={customTargetUnit}
-                  />
-                </div>
-              ) : null}
-              <label className="file-intake__resize-toggle file-intake__target-smart-fit">
-                <input
-                  checked={allowDimensionReduction}
-                  onChange={(event) => updateDimensionReduction(event.target.checked)}
-                  type="checkbox"
-                />
-                <span>
-                  <strong>Smart fit</strong>
-                  <small>
-                    If quality alone cannot reach the target, reduce dimensions while
-                    preserving proportions. The shorter edge never goes below 256 px.
-                  </small>
-                </span>
-              </label>
-            </div>
-          ) : null}
+          <Button
+            ref={browseButtonRef}
+            leadingIcon={<MaterialSymbol name="folder_open" size={20} />}
+            onClick={(event) => {
+              event.stopPropagation();
+              inputRef.current?.click();
+            }}
+          >
+            Browse files
+          </Button>
+          <ul aria-label="Supported formats" className="file-dropzone__chips">
+            {acceptedFormats.map((format) => (
+              <li key={format}>{formatName(format)}</li>
+            ))}
+          </ul>
         </div>
-      </details>
-
-      {compressionMode === "quality" && qualityAvailable ? (
-        <details className="file-intake__settings">
-          <summary>
-            <span>
-              <MaterialSymbol name="tune" size={20} />
-              Quality
-            </span>
-            <span>{quality}%</span>
-          </summary>
-          <div className="file-intake__settings-body">
-            <Slider
-              formatValue={(value) => `${value}%`}
-              hint={
-                outputFormat === "keep"
-                  ? "Applies to JPEG, WebP, and AVIF. PNG remains lossless."
-                  : "Higher quality keeps more detail and usually creates a larger file."
-              }
-              label="Compression quality"
-              min={1}
-              onChange={(event) => updateQuality(event.target.value)}
-              value={quality}
-            />
-          </div>
-        </details>
-      ) : null}
-
-      <details className="file-intake__settings">
-        <summary>
-          <span>
-            <MaterialSymbol name="photo_size_select_large" size={20} />
-            Resize output
+      ) : (
+        <div
+          className={classNames(
+            "file-intake__add motion-safe-transition",
+            dragging && "file-intake__add--active",
+          )}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={handleDrop}
+        >
+          <span aria-hidden="true" className="file-intake__add-icon">
+            <MaterialSymbol name="add_photo_alternate" size={20} />
           </span>
-          <span>
-            {resizeEnabled
-              ? resizeMode === "exact"
-                ? "Exact size"
-                : "Fit within a box"
-              : "Keep original size"}
-          </span>
-        </summary>
-        <div className="file-intake__settings-body">
-          <label className="file-intake__resize-toggle">
-            <input
-              checked={resizeEnabled}
-              onChange={(event) => updateResizeEnabled(event.target.checked)}
-              type="checkbox"
-            />
-            <span>
-              <strong>Resize images</strong>
-              <small>Choose a fitting rule. Smaller images never enlarge.</small>
-            </span>
-          </label>
-          {resizeEnabled ? (
-            <>
-              <SegmentedControl
-                className="file-intake__resize-modes"
-                label="Resize behavior"
-                onValueChange={updateResizeMode}
-                options={[
-                  { label: "Fit within", value: "max" },
-                  { label: "Exact size", value: "exact" },
-                ]}
-                value={resizeMode}
-              />
-              <div className="file-intake__dimension-grid">
-                <Input
-                  aria-invalid={resizeInputError || undefined}
-                  inputMode="numeric"
-                  label={resizeMode === "exact" ? "Width" : "Maximum width"}
-                  max={32768}
-                  min={1}
-                  onChange={(event) => updateMaxWidth(event.target.value)}
-                  placeholder={resizeMode === "exact" ? undefined : "No limit"}
-                  required={resizeMode === "exact"}
-                  type="number"
-                  value={maxWidth}
-                />
-                <Input
-                  aria-invalid={resizeInputError || undefined}
-                  inputMode="numeric"
-                  label={resizeMode === "exact" ? "Height" : "Maximum height"}
-                  max={32768}
-                  min={1}
-                  onChange={(event) => updateMaxHeight(event.target.value)}
-                  placeholder={resizeMode === "exact" ? undefined : "No limit"}
-                  required={resizeMode === "exact"}
-                  type="number"
-                  value={maxHeight}
-                />
-              </div>
-              {resizeMode === "exact" ? (
-                <label className="file-intake__resize-toggle file-intake__resize-toggle--nested">
-                  <input
-                    checked={preserveAspectRatio}
-                    onChange={(event) => updateAspectRatio(event.target.checked)}
-                    type="checkbox"
-                  />
-                  <span>
-                    <strong>Preserve proportions</strong>
-                    <small>
-                      {preserveAspectRatio
-                        ? "Center-crop to fill the exact size. No stretching."
-                        : "Stretch to fill. Image proportions may change."}
-                    </small>
-                  </span>
-                </label>
-              ) : null}
-              {resizeInputError ? (
-                <p className="file-intake__settings-error" role="alert">
-                  {resizeMode === "exact"
-                    ? "Enter a width and height from 1 to 32,768 pixels."
-                    : "Enter at least one valid maximum dimension."}
-                </p>
-              ) : null}
-            </>
-          ) : null}
-        </div>
-      </details>
-
-      <details className="file-intake__settings">
-        <summary>
-          <span>
-            <MaterialSymbol name="drive_file_rename_outline" size={20} />
-            File names
-          </span>
-          <span>{customNaming ? "Custom" : "Original names"}</span>
-        </summary>
-        <div className="file-intake__settings-body">
-          <label className="file-intake__resize-toggle">
-            <input
-              checked={customNaming}
-              onChange={(event) => updateCustomNaming(event.target.checked)}
-              type="checkbox"
-            />
-            <span>
-              <strong>Customize file names</strong>
-              <small>Add a prefix or suffix and choose consistent letter casing.</small>
-            </span>
-          </label>
-          {customNaming ? (
-            <>
-              <div className="file-intake__naming-grid">
-                <Input
-                  label="Prefix"
-                  maxLength={40}
-                  onChange={(event) => updateNamePrefix(event.target.value)}
-                  placeholder="web-"
-                  value={namePrefix}
-                />
-                <Input
-                  label="Suffix"
-                  maxLength={40}
-                  onChange={(event) => updateNameSuffix(event.target.value)}
-                  placeholder="-compressed"
-                  value={nameSuffix}
-                />
-              </div>
-              <Input
-                hint="Tokens: {name}, {number}, {width}, {height}, {format}, {ext}, {page}"
-                label="Naming pattern"
-                maxLength={120}
-                onChange={(event) => updateNamePattern(event.target.value)}
-                placeholder="{name}-{number}"
-                value={namePattern}
-              />
-              <div className="file-intake__naming-grid">
-                <Input
-                  error={
-                    Number.isInteger(parsedSequenceStart) &&
-                    parsedSequenceStart >= 0 &&
-                    parsedSequenceStart <= 999_999
-                      ? undefined
-                      : "Enter a number from 0 to 999,999."
-                  }
-                  inputMode="numeric"
-                  label="Sequence starts at"
-                  max={999999}
-                  min={0}
-                  onChange={(event) => updateSequenceStart(event.target.value)}
-                  type="number"
-                  value={sequenceStart}
-                />
-                <Input
-                  error={
-                    Number.isInteger(parsedSequencePadding) &&
-                    parsedSequencePadding >= 1 &&
-                    parsedSequencePadding <= 6
-                      ? undefined
-                      : "Enter padding from 1 to 6."
-                  }
-                  inputMode="numeric"
-                  label="Zero padding"
-                  max={6}
-                  min={1}
-                  onChange={(event) => updateSequencePadding(event.target.value)}
-                  type="number"
-                  value={sequencePadding}
-                />
-              </div>
-              <Select
-                label="Letter case"
-                onChange={(event) => updateNameCase(event.target.value)}
-                options={[
-                  { label: "Keep unchanged", value: "unchanged" },
-                  { label: "lowercase", value: "lowercase" },
-                  { label: "UPPERCASE", value: "uppercase" },
-                ]}
-                value={nameCase}
-              />
-            </>
-          ) : null}
-          <p className="file-intake__name-preview">
-            <span>Example</span>
-            <code>{namingPreview}</code>
+          <p className="file-intake__add-copy">
+            <strong>Add more images</strong>
+            <span>Drag and drop anywhere in this panel, or paste a file.</span>
           </p>
+          <Button
+            ref={browseButtonRef}
+            leadingIcon={<MaterialSymbol name="folder_open" size={20} />}
+            onClick={() => inputRef.current?.click()}
+            size="small"
+            variant="secondary"
+          >
+            Add files
+          </Button>
         </div>
-      </details>
+      )}
 
       {pendingBatches > 0 ? (
         <p className="file-intake__checking" role="status">
@@ -1567,116 +895,113 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
       ) : null}
 
       {items.length > 0 ? (
-        <div className="file-intake__results">
-          <div className="file-intake__summary" aria-live="polite">
-            <p>
-              {readyCount} ready
-              {rejectedCount > 0 ? ` · ${rejectedCount} rejected` : ""}
-              {batchRunning ? ` · processing ${batchConcurrency} at a time` : ""}
-            </p>
-            <div className="file-intake__summary-actions">
-              {batchSummary.successCount > 1 ? (
-                <Button
-                  leadingIcon={<MaterialSymbol name="download" size={20} />}
-                  size="small"
-                  variant="primary"
-                  onClick={downloadAllIndividually}
+        <div className="workbench">
+          <div className="workbench__bar">
+            <div aria-live="polite" className="workbench__status">
+              <strong className="tabular-nums">{statusPrimary}</strong>
+              <span className="tabular-nums">{statusSecondary}</span>
+            </div>
+            <div className="workbench__actions">
+              {batchRunning ? (
+                <Button onClick={cancelBatch} size="small" variant="secondary">
+                  Cancel batch
+                </Button>
+              ) : null}
+              {!batchRunning && canArchive && zipState.status === "ready" ? (
+                <a
+                  className="work-item__download workbench__zip motion-safe-transition"
+                  download={
+                    replacementSources
+                      ? "website-replacements.zip"
+                      : "compressed-images.zip"
+                  }
+                  href={zipState.downloadUrl}
                 >
+                  <MaterialSymbol name="folder_zip" size={20} />
+                  {`Download ZIP · ${formatBytes(zipState.size)}`}
+                </a>
+              ) : null}
+              {!batchRunning && canArchive && zipState.status !== "ready" ? (
+                <Button
+                  disabled={zipState.status === "generating"}
+                  leadingIcon={
+                    zipState.status === "generating" ? undefined : (
+                      <MaterialSymbol name="folder_zip" size={20} />
+                    )
+                  }
+                  onClick={() => void prepareZipDownload()}
+                  size="small"
+                  variant="secondary"
+                >
+                  {zipState.status === "generating"
+                    ? `Creating ZIP ${zipState.percent}%`
+                    : replacementSources
+                      ? "Create replacement ZIP"
+                      : "Create ZIP"}
+                </Button>
+              ) : null}
+              {!batchRunning && !everyReadyCompleted ? (
+                <Button
+                  disabled={actionsDisabled}
+                  onClick={() => void compressAll()}
+                  size="small"
+                  variant={canArchive ? "secondary" : "primary"}
+                >
+                  {batchSummary.successCount > 0 ? "Compress remaining" : "Compress all"}
+                </Button>
+              ) : null}
+              {!batchRunning && batchSummary.successCount > 1 ? (
+                <Button onClick={downloadAllIndividually} size="small" variant="ghost">
                   Download all
                 </Button>
               ) : null}
-              {batchSummary.successCount > 1 ||
-              (replacementSources && batchSummary.successCount > 0) ? (
-                zipState.status === "ready" ? (
-                  <a
-                    className="file-intake__zip-download motion-safe-transition"
-                    download={
-                      replacementSources
-                        ? "website-replacements.zip"
-                        : "compressed-images.zip"
-                    }
-                    href={zipState.downloadUrl}
-                  >
-                    <MaterialSymbol name="folder_zip" size={20} />
-                    {`${replacementSources ? "Download replacement ZIP" : "Download ZIP"} · ${formatBytes(zipState.size)}`}
-                  </a>
-                ) : (
-                  <Button
-                    disabled={zipState.status === "generating"}
-                    leadingIcon={<MaterialSymbol name="folder_zip" size={20} />}
-                    size="small"
-                    variant="secondary"
-                    onClick={() => void prepareZipDownload()}
-                  >
-                    {zipState.status === "generating"
-                      ? `Creating ZIP ${zipState.percent}%`
-                      : replacementSources
-                        ? "Create replacement ZIP"
-                        : "Create ZIP"}
-                  </Button>
-                )
-              ) : null}
-              <Button
-                disabled={resizeInputError || targetInputError || namingInputError}
+              <IconButton
+                className="workbench__clear"
+                icon={<MaterialSymbol name="delete_sweep" size={20} />}
+                label="Clear all files"
+                onClick={clearItems}
                 size="small"
-                variant="secondary"
-                onClick={batchRunning ? cancelBatch : () => void compressAll()}
-              >
-                {batchRunning ? "Cancel batch" : "Compress all"}
-              </Button>
-              <Button size="small" variant="ghost" onClick={clearItems}>
-                Clear all
-              </Button>
+              />
             </div>
-            {bulkDownloadMessage ? (
-              <span className="file-intake__bulk-download-status" role="status">
-                {bulkDownloadMessage}
-              </span>
-            ) : null}
-            {zipState.status === "failed" ? (
-              <span className="file-intake__zip-error" role="alert">
-                {zipState.message}
-              </span>
-            ) : null}
-            {replacementSources && batchSummary.successCount > 0 ? (
-              <span className="file-intake__bulk-download-status">
-                The replacement ZIP includes replacement-map.json with source-to-output
-                mappings.
-              </span>
-            ) : null}
           </div>
-          {showBatchSummary ? (
-            <section className="file-intake__batch-summary" aria-label="Batch results">
-              <div>
-                <span>Successful</span>
-                <strong>{batchSummary.successCount}</strong>
-              </div>
-              <div>
-                <span>Errors</span>
-                <strong>{batchSummary.errorCount}</strong>
-              </div>
-              <div>
-                <span>Before</span>
-                <strong>{formatBytes(batchSummary.beforeBytes)}</strong>
-              </div>
-              <div>
-                <span>After</span>
-                <strong>{formatBytes(batchSummary.afterBytes)}</strong>
-              </div>
-              <p>
-                {batchSummary.savedBytes >= 0
-                  ? `${formatBytes(batchSummary.savedBytes)} saved · ${batchSummary.savedPercent.toFixed(1)}% smaller`
-                  : `${formatBytes(Math.abs(batchSummary.savedBytes))} larger · ${Math.abs(batchSummary.savedPercent).toFixed(1)}% increase`}
-              </p>
-            </section>
+
+          {settingsNotice ? (
+            <p className="workbench__note workbench__note--notice" role="status">
+              <MaterialSymbol name="restart_alt" size={20} />
+              Settings changed — compress again to apply them.
+            </p>
           ) : null}
-          <ul className="file-intake__list" aria-label="Selected files">
-            {items.map((item) => {
+          {bulkDownloadMessage ? (
+            <p className="workbench__note" role="status">
+              <MaterialSymbol name="check_circle" size={20} />
+              {bulkDownloadMessage}
+            </p>
+          ) : null}
+          {zipState.status === "failed" ? (
+            <p className="workbench__note workbench__note--error" role="alert">
+              <MaterialSymbol name="error" size={20} />
+              {zipState.message}
+            </p>
+          ) : null}
+          {replacementSources && batchSummary.successCount > 0 ? (
+            <p className="workbench__note">
+              <MaterialSymbol name="description" size={20} />
+              The replacement ZIP includes replacement-map.json with source-to-output
+              mappings.
+            </p>
+          ) : null}
+
+          <ul aria-label="Selected files" className="workbench__list">
+            {items.map((item, index) => {
               const imageAction = imageActions[item.id] ?? { status: "idle" };
               return (
-                <li className={`file-item file-item--${item.status}`} key={item.id}>
+                <li
+                  className={`work-item work-item--${item.status}`}
+                  key={item.id}
+                  style={{ animationDelay: `${Math.min(index, 8) * 30}ms` }}
+                >
                   {item.status === "ready" ? (
-                    <span className="file-item__preview" aria-hidden="true">
+                    <span aria-hidden="true" className="work-item__media">
                       <Image
                         alt=""
                         height={56}
@@ -1686,85 +1011,116 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
                       />
                     </span>
                   ) : (
-                    <span className="file-item__status" aria-hidden="true">
-                      <MaterialSymbol name="error" size={20} filled />
+                    <span
+                      aria-hidden="true"
+                      className="work-item__media work-item__media--error"
+                    >
+                      <MaterialSymbol name="error" size={20} />
                     </span>
                   )}
-                  <span className="file-item__details">
-                    <strong>{item.name}</strong>
+                  <div className="work-item__body">
+                    <div className="work-item__head">
+                      <strong className="work-item__name" title={item.name}>
+                        {item.name}
+                      </strong>
+                      {imageAction.status === "completed" ? (
+                        <span
+                          className={classNames(
+                            "work-item__badge",
+                            imageAction.result.savedBytes >= 0
+                              ? "work-item__badge--success"
+                              : "work-item__badge--warning",
+                          )}
+                        >
+                          {describeSavings(imageAction.result)}
+                        </span>
+                      ) : null}
+                    </div>
                     {item.status === "ready" ? (
                       <>
-                        <span>{`${formatName(item.format)} · ${formatBytes(item.size)}`}</span>
-                        <span>{`${item.width} × ${item.height} px · ${item.mime}`}</span>
+                        <p className="work-item__meta tabular-nums">
+                          {`${formatName(item.format)} · ${formatBytes(item.size)} · ${item.width} × ${item.height} px`}
+                        </p>
                         {imageAction.status === "processing" ? (
-                          <span role="status">{`${progressLabel(imageAction.progress)} · ${imageAction.progress.percent}%`}</span>
+                          <div className="work-item__progress" role="status">
+                            <span aria-hidden="true" className="work-item__track">
+                              <span
+                                className="work-item__fill"
+                                style={{
+                                  transform: `scaleX(${imageAction.progress.percent / 100})`,
+                                }}
+                              />
+                            </span>
+                            <span className="tabular-nums">
+                              {`${progressLabel(imageAction.progress)} · ${imageAction.progress.percent}%`}
+                            </span>
+                          </div>
                         ) : null}
                         {imageAction.status === "queued" ? (
-                          <span role="status">Waiting in batch queue</span>
+                          <p className="work-item__meta" role="status">
+                            Waiting in the batch queue…
+                          </p>
                         ) : null}
                         {imageAction.status === "completed" ? (
                           <>
-                            <span className="file-item__success" role="status">
-                              {`${formatBytes(imageAction.result.outputBytes)} · ${describeSavings(imageAction.result)} · ${imageAction.result.outputDimensions.width} × ${imageAction.result.outputDimensions.height} px`}
-                            </span>
-                            <span className="file-item__metadata-result">
-                              {imageAction.result.metadata === "stripped"
-                                ? "Metadata removed"
-                                : imageAction.result.metadata === "preserved"
-                                  ? "Metadata preserved"
-                                  : "Metadata partially preserved"}
-                            </span>
+                            <p className="work-item__result tabular-nums">
+                              {`${formatBytes(imageAction.result.outputBytes)} · ${imageAction.result.outputDimensions.width} × ${imageAction.result.outputDimensions.height} px · ${metadataLabel(imageAction.result.metadata)}`}
+                            </p>
                             {compressionMode === "target-size" && targetBytes ? (
-                              <span className="file-item__target-success">
+                              <p className="work-item__success" role="status">
                                 <MaterialSymbol name="check_circle" size={20} filled />
                                 {`Target met · ${formatBytes(imageAction.result.outputBytes)} of ${formatBytes(targetBytes)}`}
-                              </span>
+                              </p>
                             ) : null}
                             {imageAction.result.warnings.map((warning) => (
-                              <span className="file-item__warning" key={warning.code}>
+                              <p
+                                className="work-item__warning"
+                                key={warning.code}
+                                role="status"
+                              >
                                 {warning.message}
-                              </span>
+                              </p>
                             ))}
                           </>
                         ) : null}
                         {imageAction.status === "failed" ? (
-                          <span className="file-item__error" role="alert">
+                          <p className="work-item__error" role="alert">
                             {imageAction.message}
-                          </span>
+                          </p>
                         ) : null}
                         {imageAction.status === "cancelled" ? (
-                          <span role="status">Compression cancelled.</span>
+                          <p className="work-item__meta" role="status">
+                            Compression cancelled.
+                          </p>
                         ) : null}
                       </>
                     ) : (
-                      <span>{item.message}</span>
+                      <p className="work-item__error">{item.message}</p>
                     )}
-                  </span>
-                  <span className="file-item__actions">
+                  </div>
+                  <span className="work-item__actions">
                     {item.status === "ready" ? (
                       imageAction.status === "queued" ? (
-                        <Button size="small" variant="ghost" disabled>
-                          Queued
-                        </Button>
+                        <span className="work-item__chip">Queued</span>
                       ) : imageAction.status === "processing" ? (
                         <Button
+                          onClick={() => cancelCompression(item.id)}
                           size="small"
                           variant="ghost"
-                          onClick={() => cancelCompression(item.id)}
                         >
                           Cancel
                         </Button>
                       ) : imageAction.status === "completed" ? (
                         <>
                           <Button
+                            onClick={() => setCompareItemId(item.id)}
                             size="small"
                             variant="ghost"
-                            onClick={() => setCompareItemId(item.id)}
                           >
                             Compare
                           </Button>
                           <a
-                            className="file-item__download motion-safe-transition"
+                            className="work-item__download motion-safe-transition"
                             download={imageAction.result.outputName}
                             href={imageAction.downloadUrl}
                           >
@@ -1774,12 +1130,10 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
                         </>
                       ) : (
                         <Button
-                          disabled={
-                            resizeInputError || targetInputError || namingInputError
-                          }
+                          disabled={actionsDisabled}
+                          onClick={() => void compressImage(item)}
                           size="small"
                           variant="secondary"
-                          onClick={() => void compressImage(item)}
                         >
                           {imageAction.status === "idle"
                             ? actionLabel(item.format, outputFormat)
@@ -1813,7 +1167,7 @@ export function FileIntake({ initialFiles, replacementSources }: FileIntakeProps
         footer={
           comparison ? (
             <a
-              className="file-item__download motion-safe-transition"
+              className="work-item__download motion-safe-transition"
               download={comparison.action.result.outputName}
               href={comparison.action.downloadUrl}
             >

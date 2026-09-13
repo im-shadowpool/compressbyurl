@@ -16,6 +16,48 @@ import {
 
 const MAX_SELECTED_IMAGES = 20;
 
+export type WebsiteScanPurpose = "download" | "optimizer" | "scanner";
+
+const PURPOSE_COPY = {
+  download: {
+    action: "Prepare selected downloads",
+    description:
+      "Discover image candidates, choose supported files, then download locally.",
+    heading: "Find images on one webpage",
+    scanning: "Finding images",
+    submit: "Find webpage images",
+    workspace: "Review and package selected images",
+  },
+  optimizer: {
+    action: "Import selected for optimization",
+    description:
+      "Find heavy image candidates, choose what matters, then optimize locally.",
+    heading: "Optimize webpage images",
+    scanning: "Scanning for opportunities",
+    submit: "Find images to optimize",
+    workspace: "Compress, compare and package replacements",
+  },
+  scanner: {
+    action: "Prepare selected images",
+    description:
+      "Audit discoverable images, dimensions, formats and optimization issues.",
+    heading: "Audit webpage images",
+    scanning: "Auditing page",
+    submit: "Run image audit",
+    workspace: "Inspect selected images locally",
+  },
+} as const satisfies Record<
+  WebsiteScanPurpose,
+  {
+    action: string;
+    description: string;
+    heading: string;
+    scanning: string;
+    submit: string;
+    workspace: string;
+  }
+>;
+
 interface PreparedAudit {
   files: File[];
   id: number;
@@ -157,8 +199,13 @@ function filenameKey(candidate: WebsiteImageCandidate) {
   }
 }
 
-export function WebsiteScanIntake() {
+export function WebsiteScanIntake({
+  purpose = "scanner",
+}: {
+  purpose?: WebsiteScanPurpose;
+}) {
   const isOnline = useOnlineStatus();
+  const copy = PURPOSE_COPY[purpose];
   const [url, setUrl] = useState("");
   const [manifest, setManifest] = useState<WebsiteScanManifest | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -308,17 +355,17 @@ export function WebsiteScanIntake() {
   }
 
   return (
-    <div className="website-scan">
-      <div className="image-url-intake__intro">
-        <span className="tool-shell__icon" aria-hidden="true">
-          <MaterialSymbol name="search_insights" size={32} />
+    <div className="mode-panel website-scan">
+      <header className="mode-panel__intro">
+        <span aria-hidden="true" className="mode-panel__icon">
+          <MaterialSymbol name="search_insights" size={24} />
         </span>
         <div>
-          <h2>Audit a webpage</h2>
-          <p>Discover image candidates, choose what matters, then optimize locally.</p>
+          <h2>{copy.heading}</h2>
+          <p>{copy.description}</p>
         </div>
-      </div>
-      <form className="image-url-intake__form" onSubmit={scanWebsite}>
+      </header>
+      <form className="mode-panel__form" onSubmit={scanWebsite}>
         <Input
           autoCapitalize="none"
           autoComplete="url"
@@ -341,10 +388,10 @@ export function WebsiteScanIntake() {
           loading={scanning}
           type="submit"
         >
-          {scanning ? "Scanning page" : "Scan webpage"}
+          {scanning ? copy.scanning : copy.submit}
         </Button>
       </form>
-      <p className="image-url-intake__privacy">
+      <p className="mode-panel__note">
         <MaterialSymbol name="shield_lock" size={20} />
         Private networks and metadata endpoints are blocked. Scripts are never executed.
       </p>
@@ -401,12 +448,6 @@ export function WebsiteScanIntake() {
                   key ? duplicateFilenames.has(key) : false,
                 );
                 const checked = selected.has(candidate.id);
-                const estimatedSavings = measurement
-                  ? Math.round(
-                      measurement.bytes *
-                        (["JPG", "PNG"].includes(measurement.format) ? 0.25 : 0.1),
-                    )
-                  : null;
                 return (
                   <li className="website-candidate" key={candidate.id}>
                     <label className="website-candidate__select">
@@ -443,9 +484,6 @@ export function WebsiteScanIntake() {
                         {measurement ? (
                           <span>{formatBytes(measurement.bytes)}</span>
                         ) : null}
-                        {estimatedSavings ? (
-                          <span>~{formatBytes(estimatedSavings)} potential savings</span>
-                        ) : null}
                       </div>
                       <div className="website-candidate__issues">
                         {issues.map((issue) => (
@@ -473,9 +511,7 @@ export function WebsiteScanIntake() {
               loading={preparing}
               onClick={() => void prepareSelectedImages()}
             >
-              {preparing
-                ? `Preparing ${preparedCount} of ${selected.size}`
-                : "Prepare selected images"}
+              {preparing ? `Preparing ${preparedCount} of ${selected.size}` : copy.action}
             </Button>
           </div>
 
@@ -497,7 +533,7 @@ export function WebsiteScanIntake() {
             >
               <div>
                 <p className="website-audit__eyebrow">Local replacement workspace</p>
-                <h3>Compress, compare and package</h3>
+                <h3>{copy.workspace}</h3>
                 <p>
                   Try Website Hero or Blog Image. The ZIP includes
                   <code>replacement-map.json</code> with source-to-file mappings.

@@ -60,28 +60,38 @@ Use the exact design tokens specified in [design.md](file:///c:/Users/shado/OneD
 
 The interface must **never feel crowded with endless checkboxes, sliders, and inputs**. All settings follow a sleek, modular hierarchy:
 
-### 1. Mode Switcher
-- Sleek Segmented Control (Pills) at top of tool:
+### 1. Settings Rail (Pills Above Everything)
+- A single horizontal rail at the top of the tool card holds six labeled pill buttons:
+  `[ Preset ] [ Format ] [ Quality ] [ Resize ] [ Naming ] [ Metadata ]`
+- Every pill shows its current value (e.g. `Format · WebP`, `Resize · Original size`) and a customization tint when it differs from defaults.
+- Clicking a pill opens that group in a **right-side Drawer (bottom sheet on mobile)** built from the shared `Sheet` primitive. Changes apply live; there is no Apply button.
+- The rail scrolls horizontally on narrow viewports and never pushes the intake below the fold.
+
+### 2. Mode Switcher
+- Sleek Segmented Control (Pills) centered directly beneath the settings rail:
   `[ Upload Files ]   [ Image URL ]   [ Website URL ]`
-- Active pill highlighted with subtle spring motion.
+- Full labels on desktop, compact labels on mobile, containing the stage below it.
 
-### 2. Main Intake Stage (Clean & Heroic)
-- High-visibility drag & dropzone or URL input field.
-- Clear file format badges (`JPEG · PNG · WebP · AVIF`).
-- Privacy guarantee badge: *"Local files never leave your device"*.
+### 3. Main Intake Stage (Clean & Heroic)
+- One high-visibility drag & dropzone, or a URL input row for the URL modes.
+- Clear file format chips (`JPEG · PNG · WebP · AVIF`).
+- Privacy guarantee line: *"Local files never leave your device."*
 
-### 3. Quick Controls Bar (Essential Only)
-Only the most critical settings are visible by default:
-- **Target / Quality**: Preset selector pills (e.g. `Balanced (80%)`, `Max Quality (90%)`, `Aggressive (65%)`, `Target Size (KB)`).
-- **Output Format**: Clean dropdown/segmented picker (`Keep Original`, `WebP`, `AVIF`, `JPEG`, `PNG`).
+### 4. Results Workbench (Savings First)
+- Adding files collapses the dropzone into a slim "Add more images" strip so results take the stage.
+- The workbench bar summarizes before/after bytes and savings, exposes one primary action
+  (Compress all → Download ZIP) plus quiet secondary actions, and keeps per-file
+  progress, compare, and download inline.
+- Batch stats replace the old multi-panel summary grid; a settings change surfaces a
+  "compress again to apply" notice instead of silent invalidation.
 
-### 4. Advanced Settings Component (Neat Dropdown / Tray)
-All secondary and power-user configurations are cleanly tucked into a **collapsible Settings Dropdown** or **sliding Drawer/Tray** triggered by a discreet `[ Tune / Advanced Settings ]` icon button:
-- **Resize Dimensions**: Max width/height or percentage scale.
-- **Metadata Management**: Clean toggle switch for EXIF / GPS stripping.
-- **Naming Rules**: Pattern formatting tokens (`[name]-compressed`, custom prefix/suffix).
-- **Background Fill**: Color picker for handling transparent PNGs converted to JPEG.
-- **Target Size Input**: Precise KB threshold input (active only when Target Size mode is selected).
+### Drawer Groups
+- **Preset**: use-case select, description, device-local reset.
+- **Format**: Keep original / JPEG / PNG / WebP / AVIF, JPEG transparency background + live preview.
+- **Quality**: Smart / Quality slider / Target size with custom KB-MB, Smart Fit toggle.
+- **Resize**: fit-within or exact sizing, aspect-ratio handling, inline validation.
+- **Naming**: prefix, suffix, pattern tokens, sequence, letter case, live example.
+- **Metadata**: EXIF/GPS strip toggle with explicit preservation warning.
 
 ---
 
@@ -102,33 +112,28 @@ Use **Google Material Symbols** (Outlined, 20px / 24px) for consistency:
 
 ```text
 ┌────────────────────────────────────────────────────────┐
-│  CompressByURL                 [Docs] [Github] [Theme] │
+│  CompressByURL                                         │
 │                                                        │
 │       Compress images from files or URLs.              │
 │       Fast, browser-based, zero server uploads.        │
 │                                                        │
-│      [ Upload Files ]   [ Image URL ]   [ Website URL ]│
-│                                                        │
-│  ┌──────────────────────────────────────────────────┐  │
-│  │                                                  │  │
-│  │             Drop images here to begin            │  │
-│  │                                                  │  │
-│  │               [ Browse Local Files ]             │  │
-│  │                                                  │  │
-│  │      JPG · PNG · WebP · AVIF  ·  100% Private    │  │
-│  └──────────────────────────────────────────────────┘  │
-│                                                        │
-│  ┌─ Quick Controls ──────────────────────────────────┐  │
-│  │ Format: [ Keep Original ▾ ]   Quality: [ 80% ▾ ]  │  │
-│  │                             [ ⚙ More Options ▾ ]  │  │
-│  └───────────────────────────────────────────────────┘  │
-│                                                        │
-│  ┌─ Advanced Settings Panel (Collapsed by default) ─┐  │
-│  │  Resize: [ Max 1920px ▾ ]    Strip EXIF: [ Toggle ]│  │
-│  │  Filename: [ {name}-min ]    PNG BG:    [ White  ]│  │
-│  └───────────────────────────────────────────────────┘  │
+│      ┌───────────────────────────────────────────┐     │
+│      │ Settings [Preset][Format][Quality][Resize]│     │
+│      ├───────────────────────────────────────────┤     │
+│      │   [ Upload Files ] [Image URL] [Website]  │     │
+│      │  ┌─────────────────────────────────────┐  │     │
+│      │  │                                     │  │     │
+│      │  │         Drop or paste images        │  │     │
+│      │  │         [ Browse Files ]            │  │     │
+│      │  │    JPG · PNG · WebP · AVIF          │  │     │
+│      │  └─────────────────────────────────────┘  │     │
+│      │  🔒 Local files never leave your device   │     │
+│      └───────────────────────────────────────────┘     │
 └────────────────────────────────────────────────────────┘
 ```
+
+Pills open live-editing drawers; the stage swaps to the results workbench once
+files are added and the dropzone collapses to a compact add-more strip.
 
 ---
 

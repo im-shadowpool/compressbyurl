@@ -7,6 +7,7 @@ import { classNames } from "@/lib/class-names";
 export interface SegmentedControlOption<T extends string> {
   label: string;
   value: T;
+  shortLabel?: string;
   icon?: ReactNode;
   disabled?: boolean;
 }
@@ -81,7 +82,12 @@ export function SegmentedControl<T extends string>({
             type="button"
           >
             {option.icon}
-            <span>{option.label}</span>
+            <span className={option.shortLabel ? "ui-segmented__label--full" : undefined}>
+              {option.label}
+            </span>
+            {option.shortLabel ? (
+              <span className="ui-segmented__label--compact">{option.shortLabel}</span>
+            ) : null}
           </button>
         );
       })}

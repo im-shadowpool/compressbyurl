@@ -36,6 +36,7 @@ export type IntakeRejectionCode =
   | "empty-file"
   | "unreadable-file"
   | "corrupt-image"
+  | "format-not-accepted"
   | "unsupported-format"
   | "animated-image"
   | "type-mismatch";

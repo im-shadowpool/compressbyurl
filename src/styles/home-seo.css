@@ -1,0 +1,207 @@
+.home-capabilities {
+  padding-block: clamp(4rem, 8vw, var(--spacing-section));
+}
+
+.home-capabilities__intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.75fr);
+  align-items: end;
+  gap: clamp(2rem, 6vw, 6rem);
+}
+
+.home-capabilities__intro h2,
+.home-privacy h2 {
+  margin: 0;
+  font-size: clamp(var(--type-heading-md-size), 4.5vw, var(--type-display-lg-size));
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.06;
+  text-wrap: balance;
+}
+
+.home-capabilities__intro h2 {
+  max-width: 18ch;
+}
+
+.home-capabilities__intro p {
+  max-width: 58ch;
+  margin: 0;
+  color: var(--brand-ink-secondary);
+  font-size: var(--type-body-lg-size);
+  line-height: var(--type-body-lg-line);
+}
+
+.home-capabilities__modes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: clamp(3rem, 7vw, 5.5rem);
+  border-block: 1px solid var(--brand-hairline);
+}
+
+.home-capabilities__modes article {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: clamp(1.75rem, 4vw, 3rem);
+}
+
+.home-capabilities__modes article + article {
+  border-left: 1px solid var(--brand-hairline);
+}
+
+.home-capabilities__modes .material-symbol {
+  color: var(--brand-primary-strong);
+}
+
+.home-capabilities__modes h3 {
+  margin: var(--spacing-xl) 0 var(--spacing-md);
+  font-size: var(--type-heading-sm-size);
+  font-weight: 400;
+  letter-spacing: var(--type-heading-sm-tracking);
+  line-height: var(--type-heading-sm-line);
+}
+
+.home-capabilities__modes p {
+  max-width: 38ch;
+  margin: 0;
+  color: var(--brand-ink-secondary);
+}
+
+.home-capabilities__modes a {
+  width: fit-content;
+  margin-top: auto;
+  padding-top: var(--spacing-xl);
+  color: var(--brand-ink);
+  text-decoration-color: var(--brand-primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.3em;
+}
+
+.home-capabilities__modes a:hover {
+  text-decoration-color: var(--brand-ink);
+}
+
+.home-privacy {
+  padding-bottom: clamp(4rem, 9vw, var(--spacing-section));
+}
+
+.home-privacy__frame {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(20rem, 1.15fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  padding: clamp(2rem, 6vw, 4.5rem);
+  border-radius: var(--radius-lg);
+  background: var(--brand-canvas);
+  color: var(--brand-surface-1);
+}
+
+.home-privacy__frame > div:first-child .material-symbol {
+  margin-bottom: var(--spacing-xl);
+  color: var(--brand-primary);
+}
+
+.home-privacy h2 {
+  max-width: 12ch;
+}
+
+.home-privacy__copy {
+  align-self: end;
+}
+
+.home-privacy__copy p {
+  max-width: 62ch;
+  margin: 0;
+  color: rgb(255 253 248 / 0.76);
+  font-size: var(--type-body-lg-size);
+  line-height: var(--type-body-lg-line);
+}
+
+.home-privacy__copy p + p {
+  margin-top: var(--spacing-lg);
+}
+
+.home-privacy__facts {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid rgb(255 253 248 / 0.14);
+}
+
+.home-privacy__facts div {
+  min-width: 0;
+  padding-right: var(--spacing-lg);
+}
+
+.home-privacy__facts div + div {
+  padding-left: var(--spacing-lg);
+  border-left: 1px solid rgb(255 253 248 / 0.14);
+}
+
+.home-privacy__facts dt {
+  color: var(--brand-primary);
+  font-size: var(--type-label-sm-size);
+}
+
+.home-privacy__facts dd {
+  margin: var(--spacing-sm) 0 0;
+  color: rgb(255 253 248 / 0.72);
+  font-size: var(--type-body-sm-size);
+}
+
+@media (max-width: 48rem) {
+  .home-capabilities__intro,
+  .home-privacy__frame {
+    grid-template-columns: 1fr;
+  }
+
+  .home-capabilities__intro {
+    align-items: start;
+    gap: var(--spacing-lg);
+  }
+
+  .home-capabilities__intro p,
+  .home-privacy__copy p {
+    font-size: var(--type-body-md-size);
+  }
+
+  .home-capabilities__modes,
+  .home-privacy__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .home-capabilities__modes article {
+    padding-inline: 0;
+  }
+
+  .home-capabilities__modes article + article,
+  .home-privacy__facts div + div {
+    border-left: 0;
+    border-top: 1px solid var(--brand-hairline);
+  }
+
+  .home-privacy__facts div,
+  .home-privacy__facts div + div {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .home-privacy__facts div:first-child {
+    padding-top: 0;
+  }
+
+  .home-privacy__facts div:last-child {
+    padding-bottom: 0;
+  }
+
+  .home-privacy__facts div + div {
+    border-color: rgb(255 253 248 / 0.14);
+  }
+}
+
+@media (max-width: 40rem) {
+  .home-privacy__frame {
+    border-radius: var(--radius-md);
+  }
+}

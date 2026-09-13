@@ -1,4 +1,9 @@
-import type { IntakeItem, RejectedIntakeItem, ValidatedIntakeItem } from "./types";
+import type {
+  AcceptedImageFormat,
+  IntakeItem,
+  RejectedIntakeItem,
+  ValidatedIntakeItem,
+} from "./types";
 import { validateImageFile } from "./validate-file";
 
 function corruptImage(item: ValidatedIntakeItem): RejectedIntakeItem {
@@ -56,9 +61,42 @@ export async function createPreview(item: ValidatedIntakeItem): Promise<IntakeIt
   });
 }
 
-export async function prepareImageFile(file: File, id: string): Promise<IntakeItem> {
+function formatLabel(format: AcceptedImageFormat) {
+  if (format === "jpeg") return "JPEG/JPG";
+  if (format === "webp") return "WebP";
+  return format.toUpperCase();
+}
+
+function formatNotAccepted(
+  item: ValidatedIntakeItem,
+  acceptedFormats: readonly AcceptedImageFormat[],
+): RejectedIntakeItem {
+  const labels = acceptedFormats.map(formatLabel);
+  const accepted =
+    labels.length === 1
+      ? labels[0]
+      : `${labels.slice(0, -1).join(", ")} or ${labels.at(-1)}`;
+  return {
+    code: "format-not-accepted",
+    file: item.file,
+    id: item.id,
+    message: `This page accepts ${accepted} images. Use the general image compressor for other formats.`,
+    name: item.name,
+    size: item.size,
+    status: "rejected",
+  };
+}
+
+export async function prepareImageFile(
+  file: File,
+  id: string,
+  acceptedFormats?: readonly AcceptedImageFormat[],
+): Promise<IntakeItem> {
   const validation = await validateImageFile(file, id);
   if (validation.status === "rejected") return validation;
+  if (acceptedFormats && !acceptedFormats.includes(validation.format)) {
+    return formatNotAccepted(validation, acceptedFormats);
+  }
 
   try {
     return await createPreview(validation);

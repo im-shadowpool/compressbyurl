@@ -54,6 +54,10 @@
   transition-timing-function: var(--motion-ease-standard);
 }
 
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
 .motion-safe-enter {
   animation: gentle-enter 400ms var(--motion-ease-standard) both;
 }

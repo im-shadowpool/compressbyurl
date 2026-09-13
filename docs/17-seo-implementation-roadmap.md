@@ -2,6 +2,10 @@
 
 SEO is intentionally separated from core product engineering. Do not aggressively expand SEO pages before the relevant tool behavior is actually live.
 
+Execution status, evidence, blockers and completion percentages are maintained in
+[`23-seo-progress.md`](./23-seo-progress.md). Update that file at the end of every
+SEO phase; do not create separate phase-status documents.
+
 > [!NOTE]
 > **TOKEN EFFICIENCY**: Skip formal reviewer passes by default to save agent tokens. Self-verify metadata, canonical tags, and usefulness directly during phase execution.
 

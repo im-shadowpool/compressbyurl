@@ -113,6 +113,8 @@ None in the 36-phase production roadmap.
 - Final production build: `npm run build` passed from a clean generated cache; static routes and both dynamic secure APIs were emitted successfully (webpack reported non-fatal worker-runtime chunk-cycle warnings)
 - Production smoke test: homepage, manifest, and service worker returned HTTP 200; metadata endpoint access returned `UNSAFE_DESTINATION`; browser console was clean
 - Production dependency audit: zero known vulnerabilities
+- Tool UI redesign: compression settings lifted into a shared provider, surfaced as a six-pill settings rail that opens per-group drawers; mode switcher centered beneath it; empty intake is one spacious dropzone while loaded files collapse to a compact add strip above a savings-first workbench
+- Tool UI redesign verification: `npm run typecheck`, `npm run lint`, and `npm run format:check` passed; the homepage SSR response returned HTTP 200 rendering the settings rail, mode pills, dropzone, chips, and trust strip; the Impeccable design detector reported no remaining non-advisory findings
 
 Automated test suites remain deferred according to the project phase rules. The final
 production build was run because the roadmap reached its release milestone.

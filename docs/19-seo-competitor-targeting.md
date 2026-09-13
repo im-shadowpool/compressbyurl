@@ -11,6 +11,9 @@
 
 Never publish a competitor comparison from model memory alone. Re-verify the live product before publication and periodically after launch.
 
+The dated comparison contract, evidence ledger and publication gate live in
+[`24-competitor-research.md`](./24-competitor-research.md).
+
 Before publishing, verify:
 1. current feature set
 2. supported formats

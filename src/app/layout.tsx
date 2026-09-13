@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import { Providers } from "@/app/providers";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { getSiteUrl } from "@/config/site";
 
 import "material-symbols/outlined.css";
 import "./globals.css";
@@ -13,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: getSiteUrl(),
   title: {
     default: "CompressByURL | Compress images from files or URLs",
     template: "%s | CompressByURL",
@@ -49,6 +51,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.variable}>
         <Providers>{children}</Providers>
+        <GoogleAnalytics />
       </body>
     </html>
   );

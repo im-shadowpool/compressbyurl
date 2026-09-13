@@ -8,12 +8,12 @@ import { Container } from "@/components/layout";
 import { IconButton } from "@/components/ui";
 
 const navigation = [
-  { label: "Compress", href: "#tool" },
-  { label: "Convert", href: "#tool" },
-  { label: "Resize", href: "#tool" },
-  { label: "Target size", href: "#tool" },
-  { label: "By URL", href: "#tool" },
-  { label: "Website scanner", href: "#tool" },
+  { label: "Compress", href: "/compress-image" },
+  { label: "Convert", href: "/image-converter" },
+  { label: "Resize", href: "/resize-image" },
+  { label: "Target size", href: "/compress-image-to-200kb" },
+  { label: "By URL", href: "/compress-image-from-url" },
+  { label: "Website scanner", href: "/website-image-scanner" },
 ] as const;
 
 export function SiteHeader() {
@@ -44,9 +44,9 @@ export function SiteHeader() {
               </Link>
             ))}
           </nav>
-          <a className="site-header__action" href="#tool">
+          <Link className="site-header__action" href="/compress-image">
             Start compressing
-          </a>
+          </Link>
           <div className="site-header__menu-button">
             <IconButton
               aria-controls="mobile-navigation"
