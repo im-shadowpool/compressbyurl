@@ -13,11 +13,10 @@ Then read:
 - docs/06-ui-design-system.md
 - docs/07-seo-master-strategy.md
 - docs/08-security-privacy.md
-- docs/14-implementation-roadmap-36-phases.md
 - docs/16-media-integration.md
 - docs/17-seo-implementation-roadmap.md
 
-We are building CompressByURL. The 36-phase production roadmap is complete; read
+We are building CompressByURL. The production roadmap is complete; read
 docs/21-implementation-status.md and work only on the next scope explicitly requested by the user.
 
 Before editing:
@@ -41,7 +40,7 @@ End with:
 ## Later implementation phases
 
 ```text
-Read AGENTS.md, design.md, and the exact active phase in docs/14-implementation-roadmap-36-phases.md.
+Read AGENTS.md, design.md, and docs/21-implementation-status.md before taking on explicitly requested work.
 Read the supporting docs and relevant /agents role files.
 Inspect existing code first.
 Preserve all previous acceptance criteria.

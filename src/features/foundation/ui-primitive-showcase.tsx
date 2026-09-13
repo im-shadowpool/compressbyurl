@@ -44,6 +44,7 @@ const formatOptions = [
 
 export function UiPrimitiveShowcase() {
   const [mode, setMode] = useState<(typeof modeOptions)[number]["value"]>("upload");
+  const [format, setFormat] = useState("webp");
   const [quality, setQuality] = useState(82);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -86,7 +87,12 @@ export function UiPrimitiveShowcase() {
             hint="The extension is added automatically."
             label="File name"
           />
-          <Select defaultValue="webp" label="Output format" options={formatOptions} />
+          <Select
+            label="Output format"
+            onValueChange={setFormat}
+            options={formatOptions}
+            value={format}
+          />
           <Input
             error="Enter a target between 10 KB and 10 MB."
             label="Target size"
@@ -186,7 +192,12 @@ export function UiPrimitiveShowcase() {
         title="Advanced settings"
       >
         <div className="ui-showcase__sheet-content">
-          <Select defaultValue="original" label="Output format" options={formatOptions} />
+          <Select
+            label="Output format"
+            onValueChange={setFormat}
+            options={formatOptions}
+            value={format}
+          />
           <Input hint="Images will never be enlarged." label="Maximum width" />
         </div>
       </Sheet>

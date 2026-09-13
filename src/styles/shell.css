@@ -77,7 +77,7 @@
 .home-hero__frame {
   position: relative;
   overflow: hidden;
-  padding: clamp(3rem, 8vw, 5.5rem) clamp(1.5rem, 5vw, 4rem) clamp(6rem, 13vw, 9.5rem);
+  padding: clamp(3rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3.5rem) clamp(1.5rem, 3vw, 2.5rem);
   border-radius: var(--radius-lg);
   background-color: var(--brand-canvas);
   background-image:
@@ -124,11 +124,17 @@
   line-height: var(--type-body-lg-line);
 }
 
-.home-tool {
+.home-hero__tool {
   position: relative;
   z-index: 1;
-  margin-top: calc(-1 * clamp(3.5rem, 8.5vw, 6.5rem));
-  padding-bottom: var(--spacing-2xl);
+  max-width: 88rem;
+  margin: clamp(2.5rem, 5vw, 4rem) auto 0;
+  text-align: left;
+}
+
+.home-hero__tool .tool-shell {
+  border-color: rgb(255 253 248 / 0.08);
+  box-shadow: 0 30px 90px rgb(0 0 0 / 0.5);
 }
 
 /* ------------------------------------------------------------------ */
@@ -218,7 +224,7 @@
 
 @media (max-width: 40rem) {
   .home-hero__frame {
-    padding: var(--spacing-2xl) var(--spacing-lg) 5rem;
+    padding: var(--spacing-2xl) var(--spacing-base) var(--spacing-base);
     border-radius: var(--radius-md);
   }
 
@@ -226,8 +232,8 @@
     font-size: var(--type-body-md-size);
   }
 
-  .home-tool {
-    margin-top: -3rem;
+  .home-hero__tool {
+    margin-top: var(--spacing-xl);
   }
 
   .site-footer__row {

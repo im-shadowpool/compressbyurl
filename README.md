@@ -21,7 +21,7 @@ Secondary positioning:
 - URL/page modes use only a small secure fetch/scanner layer when browser CORS makes it necessary.
 - URL workflows are the main differentiator from generic image compressors.
 - SEO is a first-class product surface, but SEO pages must map to real working tool states.
-- The project is built phase-by-phase; agents must not jump ahead.
+- The core production roadmap is complete; any additional work must be explicitly scoped before implementation.
 
 ## Explicit non-goals
 
@@ -119,8 +119,7 @@ configuration.
 7. `docs/06-ui-design-system.md`
 8. `docs/07-seo-master-strategy.md`
 9. `docs/08-security-privacy.md`
-10. `docs/14-implementation-roadmap-36-phases.md`
-11. `docs/21-implementation-status.md`
-12. `docs/17-seo-implementation-roadmap.md`
-13. `docs/23-seo-progress.md`
-14. `docs/25-backlink-distribution-plan.md`
+10. `docs/21-implementation-status.md`
+11. `docs/17-seo-implementation-roadmap.md`
+12. `docs/23-seo-progress.md`
+13. `docs/25-backlink-distribution-plan.md`

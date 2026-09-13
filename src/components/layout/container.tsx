@@ -1,6 +1,6 @@
 import type { HTMLAttributes } from "react";
 
-type ContainerSize = "content" | "wide";
+type ContainerSize = "content" | "wide" | "bleed";
 
 export interface ContainerProps extends HTMLAttributes<HTMLDivElement> {
   size?: ContainerSize;

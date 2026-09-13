@@ -8,8 +8,9 @@ export {
   type SegmentedControlOption,
   type SegmentedControlProps,
 } from "./segmented-control";
-export { Select, type SelectProps } from "./select";
+export { Select, type SelectOption, type SelectProps } from "./select";
 export { Sheet, type SheetProps } from "./sheet";
+export { useAnchoredPopover, type AnchoredPopoverOptions } from "./use-anchored-popover";
 export { Slider, type SliderProps } from "./slider";
 export { Switch, type SwitchProps } from "./switch";
 export { ToastProvider, useToast, type ToastOptions, type ToastVariant } from "./toast";

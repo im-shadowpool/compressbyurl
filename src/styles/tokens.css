@@ -52,6 +52,7 @@
   --layout-content-max: 67.5rem;
   --layout-wide-max: 80rem;
   --layout-gutter: clamp(1rem, 3vw, 2rem);
+  --layout-bleed-gutter: clamp(0.75rem, 1.4vw, 1.25rem);
 
   /* Interaction */
   --focus-ring-color: rgb(171 159 242 / 0.56);

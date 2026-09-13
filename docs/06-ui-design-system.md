@@ -64,7 +64,8 @@ The interface must **never feel crowded with endless checkboxes, sliders, and in
 - A single horizontal rail at the top of the tool card holds six labeled pill buttons:
   `[ Preset ] [ Format ] [ Quality ] [ Resize ] [ Naming ] [ Metadata ]`
 - Every pill shows its current value (e.g. `Format · WebP`, `Resize · Original size`) and a customization tint when it differs from defaults.
-- Clicking a pill opens that group in a **right-side Drawer (bottom sheet on mobile)** built from the shared `Sheet` primitive. Changes apply live; there is no Apply button.
+- Clicking a pill opens an **anchored dropdown panel** beneath the pill (flipped above when short on space). Changes apply live; there is no Apply or Done button — dismiss with outside click or Escape.
+- The dropdown uses the Popover API top layer, so it never gets clipped by the rail's scroll container, and animates open and closed with a fade-and-slide.
 - The rail scrolls horizontally on narrow viewports and never pushes the intake below the fold.
 
 ### 2. Mode Switcher

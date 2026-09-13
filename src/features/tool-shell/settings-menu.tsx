@@ -1,18 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import {
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { MaterialSymbol } from "@/components/icons";
-import {
-  Button,
-  Input,
-  SegmentedControl,
-  Select,
-  Sheet,
-  Slider,
-  Switch,
-} from "@/components/ui";
+import { Button, Input, SegmentedControl, Select, Slider, Switch } from "@/components/ui";
 import {
   COMPRESSION_PRESETS,
   createOutputName,
@@ -97,7 +98,7 @@ function PresetPanel() {
       <Select
         hint="Choose a starting point, then adjust any setting."
         label="Use case"
-        onChange={(event) => settings.applyPreset(event.target.value)}
+        onValueChange={settings.applyPreset}
         options={[
           { label: "Custom settings", value: "custom" },
           ...COMPRESSION_PRESETS.map((preset) => ({
@@ -140,7 +141,7 @@ function FormatPanel() {
       <Select
         hint="Keep original preserves each file's format."
         label="Save as"
-        onChange={(event) => settings.updateOutputFormat(event.target.value)}
+        onValueChange={settings.updateOutputFormat}
         options={[
           { label: "Keep original format", value: "keep" },
           { label: "JPEG", value: "jpeg" },
@@ -259,8 +260,8 @@ function QualityPanel() {
               />
               <Select
                 label="Unit"
-                onChange={(event) =>
-                  settings.updateCustomTargetUnit(event.target.value as "kb" | "mb")
+                onValueChange={(value) =>
+                  settings.updateCustomTargetUnit(value as "kb" | "mb")
                 }
                 options={[
                   { label: "KB", value: "kb" },
@@ -433,10 +434,8 @@ function NamingPanel() {
           </div>
           <Select
             label="Letter case"
-            onChange={(event) =>
-              settings.updateNameCase(
-                event.target.value as "lowercase" | "unchanged" | "uppercase",
-              )
+            onValueChange={(value) =>
+              settings.updateNameCase(value as "lowercase" | "unchanged" | "uppercase")
             }
             options={[
               { label: "Keep unchanged", value: "unchanged" },
@@ -519,13 +518,31 @@ function groupValue(
   return controller.stripMetadata ? "Removed" : "Preserved";
 }
 
+const useIsomorphicLayoutEffect =
+  typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+const subscribeToPopoverSupport = () => () => undefined;
+
+function supportsPopover() {
+  return typeof HTMLElement !== "undefined" && "showPopover" in HTMLElement.prototype;
+}
+
 export function CompressionSettingsMenu({
   featuredGroup,
 }: {
   featuredGroup?: SettingsGroupId;
 }) {
   const settings = useCompressionSettings();
-  const [activeGroup, setActiveGroup] = useState<SettingsGroup | null>(null);
+  const [openGroupId, setOpenGroupId] = useState<SettingsGroupId | null>(null);
+  const [renderedGroup, setRenderedGroup] = useState<SettingsGroup | null>(null);
+  const popoverSupported = useSyncExternalStore(
+    subscribeToPopoverSupport,
+    supportsPopover,
+    () => false,
+  );
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const pillRefs = useRef(new Map<SettingsGroupId, HTMLButtonElement>());
+  const dropdownId = useId();
   const orderedGroups = featuredGroup
     ? [
         SETTINGS_GROUPS.find((group) => group.id === featuredGroup),
@@ -533,71 +550,178 @@ export function CompressionSettingsMenu({
       ].filter((group): group is SettingsGroup => Boolean(group))
     : SETTINGS_GROUPS;
 
+  const positionDropdown = useCallback(() => {
+    const dropdown = dropdownRef.current;
+    const trigger = openGroupId ? pillRefs.current.get(openGroupId) : null;
+    if (!dropdown || !trigger) return;
+
+    const gap = 10;
+    const margin = 12;
+    const width = Math.min(400, window.innerWidth - margin * 2);
+    dropdown.style.width = `${width}px`;
+
+    const rect = trigger.getBoundingClientRect();
+    const height = dropdown.offsetHeight;
+    const fitsBelow = rect.bottom + gap + height <= window.innerHeight - margin;
+    const left = Math.min(
+      Math.max(margin, rect.left),
+      Math.max(margin, window.innerWidth - width - margin),
+    );
+    dropdown.style.left = `${left}px`;
+    dropdown.style.top = `${Math.max(
+      margin,
+      fitsBelow ? rect.bottom + gap : rect.top - gap - height,
+    )}px`;
+    dropdown.dataset.placement = fitsBelow ? "below" : "above";
+  }, [openGroupId]);
+
+  useIsomorphicLayoutEffect(() => {
+    const dropdown = dropdownRef.current;
+    if (!dropdown) return;
+
+    if (!popoverSupported) {
+      if (openGroupId) positionDropdown();
+      return;
+    }
+
+    if (openGroupId) {
+      if (!dropdown.matches(":popover-open")) dropdown.showPopover();
+      positionDropdown();
+    } else if (dropdown.matches(":popover-open")) {
+      dropdown.hidePopover();
+    }
+  }, [openGroupId, popoverSupported, positionDropdown, renderedGroup]);
+
+  useEffect(() => {
+    if (!openGroupId) return;
+
+    const reposition = () => positionDropdown();
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
+    return () => {
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
+    };
+  }, [openGroupId, positionDropdown]);
+
+  useEffect(() => {
+    if (!openGroupId) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      if (dropdownRef.current?.contains(target)) return;
+      if (target.closest(".settings-pill")) return;
+      setOpenGroupId(null);
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpenGroupId(null);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [openGroupId]);
+
+  function toggleGroup(event: MouseEvent<HTMLButtonElement>, group: SettingsGroup) {
+    const willOpen = openGroupId !== group.id;
+    setRenderedGroup(group);
+    setOpenGroupId(willOpen ? group.id : null);
+
+    if (willOpen && event.detail === 0) {
+      // Keyboard activation moves focus into the panel so Tab reaches controls.
+      requestAnimationFrame(() => {
+        dropdownRef.current
+          ?.querySelector<HTMLElement>(
+            "select, input, button, a[href], [tabindex]:not([tabindex='-1'])",
+          )
+          ?.focus();
+      });
+    }
+  }
+
   return (
-    <>
-      <div className="settings-rail">
-        <span className="settings-rail__title">
-          <MaterialSymbol name="tune" size={20} />
-          <span className="settings-rail__title-text">Settings</span>
-        </span>
-        <div
-          aria-label="Compression settings"
-          className="settings-rail__pills"
-          role="group"
-        >
-          {orderedGroups.map((group) => {
-            const customized = isGroupCustomized(group.id, settings);
-            return (
-              <button
-                aria-expanded={activeGroup?.id === group.id}
-                aria-haspopup="dialog"
-                className={classNames(
-                  "settings-pill motion-safe-transition",
-                  featuredGroup === group.id && "settings-pill--featured",
-                  customized && "settings-pill--customized",
-                )}
-                key={group.id}
-                onClick={() => setActiveGroup(group)}
-                type="button"
-              >
-                <MaterialSymbol
-                  className="settings-pill__icon"
-                  name={group.icon}
-                  size={20}
-                />
-                <span className="settings-pill__text">
-                  <span className="settings-pill__label">{group.label}</span>
-                  <span className="settings-pill__value">
-                    {groupValue(group.id, settings)}
-                  </span>
+    <div className="settings-rail">
+      <span className="settings-rail__title">
+        <MaterialSymbol name="tune" size={20} />
+        <span className="settings-rail__title-text">Settings</span>
+      </span>
+      <div
+        aria-label="Compression settings"
+        className="settings-rail__pills"
+        role="group"
+      >
+        {orderedGroups.map((group) => {
+          const customized = isGroupCustomized(group.id, settings);
+          const expanded = openGroupId === group.id;
+          return (
+            <button
+              ref={(node) => {
+                if (node) pillRefs.current.set(group.id, node);
+                else pillRefs.current.delete(group.id);
+              }}
+              aria-controls={dropdownId}
+              aria-expanded={expanded}
+              aria-haspopup="dialog"
+              className={classNames(
+                "settings-pill motion-safe-transition",
+                featuredGroup === group.id && "settings-pill--featured",
+                customized && "settings-pill--customized",
+              )}
+              key={group.id}
+              onClick={(event) => toggleGroup(event, group)}
+              type="button"
+            >
+              <MaterialSymbol
+                className="settings-pill__icon"
+                name={group.icon}
+                size={20}
+              />
+              <span className="settings-pill__text">
+                <span className="settings-pill__label">{group.label}</span>
+                <span className="settings-pill__value">
+                  {groupValue(group.id, settings)}
                 </span>
-                <MaterialSymbol
-                  className="settings-pill__chevron"
-                  name="expand_more"
-                  size={20}
-                />
-              </button>
-            );
-          })}
+              </span>
+              <MaterialSymbol
+                className="settings-pill__chevron"
+                name="expand_more"
+                size={20}
+              />
+            </button>
+          );
+        })}
+
+        <div
+          aria-label={renderedGroup ? `${renderedGroup.label} settings` : "Settings"}
+          className={classNames(
+            "settings-dropdown",
+            !popoverSupported && "settings-dropdown--fallback",
+            openGroupId && "settings-dropdown--open",
+          )}
+          id={dropdownId}
+          popover={popoverSupported ? "manual" : undefined}
+          ref={dropdownRef}
+          role="dialog"
+        >
+          {renderedGroup ? (
+            <>
+              <div className="settings-dropdown__header">
+                <MaterialSymbol name={renderedGroup.icon} size={20} />
+                <strong>{renderedGroup.label}</strong>
+              </div>
+              <div className="settings-dropdown__body" key={renderedGroup.id}>
+                <SettingsPanel id={renderedGroup.id} />
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
-
-      <Sheet
-        description={activeGroup?.description}
-        footer={
-          <Button onClick={() => setActiveGroup(null)} variant="secondary">
-            Done
-          </Button>
-        }
-        onOpenChange={(open) => {
-          if (!open) setActiveGroup(null);
-        }}
-        open={activeGroup !== null}
-        title={activeGroup ? `${activeGroup.label} settings` : "Settings"}
-      >
-        {activeGroup ? <SettingsPanel id={activeGroup.id} /> : null}
-      </Sheet>
-    </>
+    </div>
   );
 }
 

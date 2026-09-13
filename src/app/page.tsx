@@ -16,7 +16,7 @@ export default function HomePage() {
       <SiteHeader />
       <main>
         <section className="home-hero" aria-labelledby="page-title">
-          <Container>
+          <Container size="bleed">
             <div className="home-hero__frame">
               <div className="home-hero__copy motion-safe-enter">
                 <p className="home-hero__eyebrow">
@@ -26,13 +26,12 @@ export default function HomePage() {
                 <h1 id="page-title">Compress images from files or URLs.</h1>
                 <p>Make images smaller, convert formats and fix heavy webpage assets.</p>
               </div>
-            </div>
-          </Container>
-        </section>
-        <section className="home-tool">
-          <Container>
-            <div className="motion-safe-enter" style={{ animationDelay: "80ms" }}>
-              <ToolModeSwitcher />
+              <div
+                className="home-hero__tool motion-safe-enter"
+                style={{ animationDelay: "80ms" }}
+              >
+                <ToolModeSwitcher />
+              </div>
             </div>
           </Container>
         </section>
