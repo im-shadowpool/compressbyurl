@@ -1,0 +1,91 @@
+.layout-container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--layout-gutter);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.layout-container--content {
+  max-width: var(--layout-content-max);
+}
+
+.layout-container--wide {
+  max-width: var(--layout-wide-max);
+}
+
+.layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 48rem) {
+  .layout-grid--2,
+  .layout-grid--3,
+  .layout-grid--4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 64rem) {
+  .layout-grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .layout-grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.motion-safe-transition {
+  transition-duration: var(--motion-duration-base);
+  transition-property:
+    color, background-color, border-color, box-shadow, opacity, transform;
+  transition-timing-function: var(--motion-ease-standard);
+}
+
+.motion-safe-enter {
+  animation: gentle-enter 400ms var(--motion-ease-standard) both;
+}
+
+@keyframes gentle-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .motion-safe-enter {
+    opacity: 1;
+    transform: none;
+  }
+}

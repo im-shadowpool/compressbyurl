@@ -1,0 +1,14 @@
+.next
+node_modules
+out
+coverage
+package-lock.json
+AGENTS.md
+README.md
+START-HERE-CODEX.md
+project-map.json
+docs
+agents
+.agents
+phantom.design.md
+design.md

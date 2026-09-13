@@ -1,0 +1,27 @@
+{
+  "brand": "CompressByURL",
+  "tagline": "Compress images from files or URLs.",
+  "implementation_phases": 36,
+  "seo_phases": 21,
+  "modes": [
+    "upload-files",
+    "image-url",
+    "website-url"
+  ],
+  "formats": [
+    "jpeg",
+    "png",
+    "webp",
+    "avif-static"
+  ],
+  "excluded": [
+    "animated-gif-optimization",
+    "animated-webp-optimization",
+    "animated-avif-optimization",
+    "accounts-at-launch",
+    "cloud-storage"
+  ],
+  "differentiator": "direct image URL and webpage image optimization",
+  "privacy": "local uploads processed in browser",
+  "seo": "dedicated separate implementation roadmap"
+}
