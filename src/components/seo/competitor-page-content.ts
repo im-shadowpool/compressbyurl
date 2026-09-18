@@ -197,7 +197,7 @@ const CONTENT = {
         title: "Add a file or batch",
       },
       {
-        body: "Apply one preset across the queue, or use resize, quality, format and target-size controls.",
+        body: "Apply consistent settings across the queue, using resize, quality, format and target-size controls.",
         title: "Choose repeatable settings",
       },
       {
@@ -219,7 +219,7 @@ const CONTENT = {
         title: "Designed around a queue",
       },
       {
-        body: "Squoosh exposes deep codec choices. CompressByURL uses restrained presets first and keeps advanced controls available when needed.",
+        body: "Squoosh exposes deep low-level codec dials. CompressByURL provides clean, essential controls for format, quality, and sizing while processing entirely in your browser.",
         title: "Different control philosophy",
       },
     ],

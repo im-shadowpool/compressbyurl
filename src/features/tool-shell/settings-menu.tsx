@@ -13,9 +13,8 @@ import {
 } from "react";
 
 import { MaterialSymbol } from "@/components/icons";
-import { Button, Input, SegmentedControl, Select, Slider, Switch } from "@/components/ui";
+import { Input, SegmentedControl, Select, Slider, Switch } from "@/components/ui";
 import {
-  COMPRESSION_PRESETS,
   createOutputName,
   resolveOutputFormat,
 } from "@/features/compression";
@@ -30,7 +29,7 @@ import {
 } from "@/features/file-intake";
 import { classNames } from "@/lib/class-names";
 
-type SettingsGroupId = "preset" | "format" | "quality" | "resize" | "naming" | "metadata";
+type SettingsGroupId = "format" | "quality" | "resize" | "naming" | "metadata";
 
 interface SettingsGroup {
   description: string;
@@ -40,12 +39,6 @@ interface SettingsGroup {
 }
 
 const SETTINGS_GROUPS: readonly SettingsGroup[] = [
-  {
-    description: "Start from a use-case preset. Adjusting anything switches to custom.",
-    icon: "bookmark",
-    id: "preset",
-    label: "Preset",
-  },
   {
     description: "Pick the output format. Conversion happens locally in your browser.",
     icon: "swap_horiz",
@@ -82,53 +75,11 @@ function isGroupCustomized(
   id: SettingsGroupId,
   settings: ReturnType<typeof useCompressionSettings>,
 ) {
-  if (id === "preset") return settings.activePreset !== "custom";
   if (id === "format") return settings.outputFormat !== "keep";
   if (id === "quality") return settings.compressionMode !== "smart";
   if (id === "resize") return settings.resizeEnabled;
   if (id === "naming") return settings.customNaming;
   return !settings.stripMetadata;
-}
-
-function PresetPanel() {
-  const settings = useCompressionSettings();
-
-  return (
-    <div className="settings-panel">
-      <Select
-        hint="Choose a starting point, then adjust any setting."
-        label="Use case"
-        onValueChange={settings.applyPreset}
-        options={[
-          { label: "Custom settings", value: "custom" },
-          ...COMPRESSION_PRESETS.map((preset) => ({
-            label: preset.label,
-            value: preset.id,
-          })),
-        ]}
-        value={settings.activePreset}
-      />
-      {settings.selectedPreset ? (
-        <p className="settings-panel__callout">{settings.selectedPreset.description}</p>
-      ) : null}
-      <div className="settings-panel__storage">
-        <div>
-          <strong>Saved on this device</strong>
-          <span>
-            Preferences stay in this browser. Files and image data are never saved.
-          </span>
-        </div>
-        <Button size="small" variant="ghost" onClick={settings.resetSavedPreferences}>
-          Reset settings
-        </Button>
-      </div>
-      {settings.preferencesNotice ? (
-        <p aria-live="polite" className="settings-panel__note" role="status">
-          {settings.preferencesNotice}
-        </p>
-      ) : null}
-    </div>
-  );
 }
 
 function FormatPanel() {
@@ -482,7 +433,6 @@ function MetadataPanel() {
 }
 
 function SettingsPanel({ id }: { id: SettingsGroupId }) {
-  if (id === "preset") return <PresetPanel />;
   if (id === "format") return <FormatPanel />;
   if (id === "quality") return <QualityPanel />;
   if (id === "resize") return <ResizePanel />;
@@ -494,7 +444,6 @@ function groupValue(
   group: SettingsGroupId,
   controller: ReturnType<typeof useCompressionSettings>,
 ) {
-  if (group === "preset") return controller.selectedPreset?.label ?? "Custom";
   if (group === "format") return describeOutputFormat(controller.outputFormat);
   if (group === "quality") {
     return describeCompressionMode(
@@ -721,16 +670,40 @@ export function CompressionSettingsMenu({
           {renderedGroup ? (
             <>
               <div className="settings-dropdown__header">
-                <MaterialSymbol name={renderedGroup.icon} size={20} />
-                <strong>{renderedGroup.label}</strong>
+                <div className="settings-dropdown__header-title">
+                  <MaterialSymbol name={renderedGroup.icon} size={20} />
+                  <strong>{renderedGroup.label}</strong>
+                </div>
+                <button
+                  className="settings-dropdown__reset"
+                  onClick={settings.resetSavedPreferences}
+                  title="Reset all settings to defaults"
+                  type="button"
+                >
+                  Reset defaults
+                </button>
               </div>
               <div className="settings-dropdown__body" key={renderedGroup.id}>
                 <SettingsPanel id={renderedGroup.id} />
+                {settings.preferencesNotice ? (
+                  <p aria-live="polite" className="settings-panel__note" role="status">
+                    {settings.preferencesNotice}
+                  </p>
+                ) : null}
               </div>
             </>
           ) : null}
         </div>
       </div>
+      <button
+        className="settings-rail__reset"
+        onClick={settings.resetSavedPreferences}
+        title="Reset settings to defaults"
+        type="button"
+      >
+        <MaterialSymbol name="restart_alt" size={20} />
+        <span className="settings-rail__reset-text">Reset</span>
+      </button>
     </div>
   );
 }

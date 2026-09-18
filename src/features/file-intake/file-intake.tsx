@@ -32,7 +32,7 @@ import { CompressionWorkerClient, isCompressionWorkerError } from "@/workers";
 
 import { useCompressionSettings } from "./compression-settings";
 import { prepareImageFile, revokePreview } from "./create-preview";
-import { formatBytes } from "./format-bytes";
+import { formatByteDelta, formatBytes } from "./format-bytes";
 import type { AcceptedImageFormat, IntakeItem } from "./types";
 
 function createItemId() {
@@ -58,9 +58,35 @@ type ZipState =
   | { status: "ready"; downloadUrl: string; size: number }
   | { status: "failed"; message: string };
 
-function describeSavings(result: CompressionResult) {
-  const magnitude = Math.abs(result.savedPercent).toFixed(1);
-  return result.savedBytes >= 0 ? `${magnitude}% smaller` : `${magnitude}% larger`;
+function describeSavingsBadge(result: CompressionResult) {
+  const percent = Math.abs(result.savedPercent);
+  const formattedPercent =
+    percent < 10 && percent % 1 !== 0
+      ? percent.toFixed(1)
+      : Math.round(percent).toString();
+
+  if (result.savedBytes > 0) {
+    return {
+      text: `−${formattedPercent}%`,
+      icon: "trending_down",
+      className: "work-item__savings-badge--success",
+      title: `${formatBytes(result.savedBytes)} saved (${percent.toFixed(1)}%)`,
+    };
+  }
+  if (result.savedBytes < 0) {
+    return {
+      text: `+${formattedPercent}%`,
+      icon: "trending_up",
+      className: "work-item__savings-badge--warning",
+      title: `${formatBytes(Math.abs(result.savedBytes))} larger (${percent.toFixed(1)}%)`,
+    };
+  }
+  return {
+    text: "0%",
+    icon: "remove",
+    className: "work-item__savings-badge--neutral",
+    title: "No size change",
+  };
 }
 
 function progressLabel(progress: CompressionProgress) {
@@ -159,7 +185,6 @@ export function FileIntake({
   const batchGeneration = useRef(0);
   const zipUrl = useRef<string | null>(null);
   const consumedInitialFiles = useRef(false);
-  const comparisonHoverTimer = useRef<number | null>(null);
   const [dragging, setDragging] = useState(false);
   const [items, setItems] = useState<IntakeItem[]>([]);
   const [imageActions, setImageActions] = useState<
@@ -220,16 +245,7 @@ export function FileIntake({
       objectUrls.clear();
       generatedOutputUrls.forEach((outputUrl) => URL.revokeObjectURL(outputUrl));
       generatedOutputUrls.clear();
-      if (comparisonHoverTimer.current !== null) {
-        window.clearTimeout(comparisonHoverTimer.current);
-      }
     };
-  }, []);
-
-  const cancelComparisonHover = useCallback(() => {
-    if (comparisonHoverTimer.current === null) return;
-    window.clearTimeout(comparisonHoverTimer.current);
-    comparisonHoverTimer.current = null;
   }, []);
 
   function releaseOutput(id: string) {
@@ -1009,23 +1025,26 @@ export function FileIntake({
           <ul aria-label="Selected files" className="workbench__list">
             {items.map((item, index) => {
               const imageAction = imageActions[item.id] ?? { status: "idle" };
+              const isReady = item.status === "ready";
+              const completedResult =
+                isReady && imageAction.status === "completed"
+                  ? imageAction.result
+                  : null;
+              const delta =
+                isReady && completedResult
+                  ? formatByteDelta(item.size, completedResult.outputBytes)
+                  : null;
+              const savingsBadge = completedResult
+                ? describeSavingsBadge(completedResult)
+                : null;
               const dimensionsChanged =
-                item.status === "ready" &&
-                imageAction.status === "completed" &&
-                (item.width !== imageAction.result.outputDimensions.width ||
-                  item.height !== imageAction.result.outputDimensions.height);
+                isReady &&
+                completedResult !== null &&
+                (item.width !== completedResult.outputDimensions.width ||
+                  item.height !== completedResult.outputDimensions.height);
               const openComparison = () => {
-                cancelComparisonHover();
                 setComparePosition(50);
                 setCompareItemId(item.id);
-              };
-              const previewComparison = () => {
-                cancelComparisonHover();
-                comparisonHoverTimer.current = window.setTimeout(() => {
-                  comparisonHoverTimer.current = null;
-                  setComparePosition(50);
-                  setCompareItemId(item.id);
-                }, 280);
               };
               return (
                 <li
@@ -1033,157 +1052,167 @@ export function FileIntake({
                   key={item.id}
                   style={{ animationDelay: `${Math.min(index, 8) * 30}ms` }}
                 >
-                  {item.status === "ready" && imageAction.status === "completed" ? (
+                  {isReady && imageAction.status === "completed" ? (
                     <button
                       aria-label={`Compare original and optimized ${item.name}`}
                       className="work-item__media work-item__media--compare motion-safe-transition"
                       onClick={openComparison}
-                      onPointerEnter={(event) => {
-                        if (event.pointerType === "mouse") previewComparison();
-                      }}
-                      onPointerLeave={cancelComparisonHover}
                       type="button"
                     >
                       <Image
                         alt=""
-                        height={72}
+                        height={64}
                         src={item.previewUrl}
                         unoptimized
-                        width={72}
+                        width={64}
                       />
-                      <span aria-hidden="true" className="work-item__compare-overlay">
+                      <span className="work-item__compare-overlay">
                         <MaterialSymbol name="compare" size={20} />
                         <span>Compare</span>
                       </span>
                     </button>
-                  ) : item.status === "ready" ? (
-                    <span aria-hidden="true" className="work-item__media">
+                  ) : isReady && item.previewUrl ? (
+                    <span className="work-item__media">
                       <Image
                         alt=""
-                        height={72}
+                        height={64}
                         src={item.previewUrl}
                         unoptimized
-                        width={72}
+                        width={64}
                       />
                     </span>
                   ) : (
                     <span
-                      aria-hidden="true"
+                      aria-label="Image could not be decoded"
                       className="work-item__media work-item__media--error"
+                      role="img"
                     >
                       <MaterialSymbol name="error" size={20} />
                     </span>
                   )}
                   <div className="work-item__body">
-                    <div className="work-item__head">
-                      <strong className="work-item__name" title={item.name}>
-                        {item.name}
-                      </strong>
-                    </div>
-                    {item.status === "ready" ? (
-                      <>
+                    <div className="work-item__info">
+                      <div className="work-item__head">
+                        <strong className="work-item__name" title={item.name}>
+                          {item.name}
+                        </strong>
+                      </div>
+                      {item.status === "ready" ? (
                         <p className="work-item__meta tabular-nums">
                           {`${formatName(item.format)} · ${formatBytes(item.size)} · ${item.width} × ${item.height} px`}
                         </p>
-                        {imageAction.status === "processing" ? (
-                          <div className="work-item__progress" role="status">
-                            <span aria-hidden="true" className="work-item__track">
-                              <span
-                                className="work-item__fill"
-                                style={{
-                                  transform: `scaleX(${imageAction.progress.percent / 100})`,
-                                }}
-                              />
+                      ) : (
+                        <p className="work-item__error">{item.message}</p>
+                      )}
+                      {item.status === "ready" && imageAction.status === "processing" ? (
+                        <div className="work-item__progress" role="status">
+                          <span aria-hidden="true" className="work-item__track">
+                            <span
+                              className="work-item__fill"
+                              style={{
+                                transform: `scaleX(${imageAction.progress.percent / 100})`,
+                              }}
+                            />
+                          </span>
+                          <span className="tabular-nums">
+                            {`${progressLabel(imageAction.progress)} · ${imageAction.progress.percent}%`}
+                          </span>
+                        </div>
+                      ) : null}
+                      {item.status === "ready" && imageAction.status === "queued" ? (
+                        <p className="work-item__meta" role="status">
+                          Waiting in the batch queue…
+                        </p>
+                      ) : null}
+                      {item.status === "ready" && imageAction.status === "failed" ? (
+                        <p className="work-item__error" role="alert">
+                          {imageAction.message}
+                        </p>
+                      ) : null}
+                      {item.status === "ready" && imageAction.status === "cancelled" ? (
+                        <p className="work-item__meta" role="status">
+                          Compression cancelled.
+                        </p>
+                      ) : null}
+                    </div>
+
+                    {isReady && completedResult && delta && savingsBadge ? (
+                      <div className="work-item__changes">
+                        <div className="work-item__metrics tabular-nums">
+                          <div className="work-item__size-flow">
+                            <span
+                              className="work-item__size-from"
+                              title={`Original: ${formatBytes(item.size)}`}
+                            >
+                              {delta.from}
                             </span>
-                            <span className="tabular-nums">
-                              {`${progressLabel(imageAction.progress)} · ${imageAction.progress.percent}%`}
+                            <MaterialSymbol
+                              className="work-item__size-arrow"
+                              name="arrow_forward"
+                              size={20}
+                            />
+                            <span
+                              className="work-item__size-to"
+                              title={`Optimized: ${formatBytes(completedResult.outputBytes)}`}
+                            >
+                              {delta.to}
                             </span>
                           </div>
-                        ) : null}
-                        {imageAction.status === "queued" ? (
-                          <p className="work-item__meta" role="status">
-                            Waiting in the batch queue…
-                          </p>
-                        ) : null}
-                        {imageAction.status === "completed" ? (
-                          <>
-                            <div className="work-item__size-summary tabular-nums">
-                              <span className="work-item__size-block">
-                                <small>Before</small>
-                                <strong>{formatBytes(item.size)}</strong>
-                              </span>
-                              <MaterialSymbol
-                                className="work-item__size-arrow"
-                                name="arrow_forward"
-                                size={20}
-                              />
-                              <span className="work-item__size-block work-item__size-block--after">
-                                <small>After</small>
-                                <strong>
-                                  {formatBytes(imageAction.result.outputBytes)}
-                                </strong>
-                              </span>
+
+                          <span
+                            className={classNames(
+                              "work-item__savings-badge",
+                              savingsBadge.className,
+                            )}
+                            title={savingsBadge.title}
+                          >
+                            <MaterialSymbol name={savingsBadge.icon} size={20} />
+                            <span>{savingsBadge.text}</span>
+                          </span>
+                        </div>
+
+                        <div className="work-item__specs tabular-nums">
+                          <span className="work-item__format-pill">
+                            {formatName(completedResult.outputFormat)}
+                          </span>
+                          <span className="work-item__specs-sep" aria-hidden="true">·</span>
+                          <span>{`${completedResult.outputDimensions.width} × ${completedResult.outputDimensions.height} px`}</span>
+                          {dimensionsChanged ? (
+                            <>
+                              <span className="work-item__specs-sep" aria-hidden="true">·</span>
                               <span
-                                className={classNames(
-                                  "work-item__saving",
-                                  imageAction.result.savedBytes >= 0
-                                    ? "work-item__saving--success"
-                                    : "work-item__saving--warning",
-                                )}
+                                className="work-item__detail--resized"
+                                title={`Resized from ${item.width} × ${item.height} px`}
                               >
-                                <MaterialSymbol
-                                  name={
-                                    imageAction.result.savedBytes >= 0
-                                      ? "south_east"
-                                      : "north_east"
-                                  }
-                                  size={20}
-                                />
-                                {describeSavings(imageAction.result)}
+                                <MaterialSymbol name="aspect_ratio" size={20} />
+                                Resized
                               </span>
-                            </div>
-                            <div className="work-item__details tabular-nums">
-                              <span>{formatName(imageAction.result.outputFormat)}</span>
-                              <span>{`${imageAction.result.outputDimensions.width} × ${imageAction.result.outputDimensions.height} px`}</span>
-                              {dimensionsChanged ? (
-                                <span className="work-item__detail--resized">
-                                  <MaterialSymbol name="aspect_ratio" size={20} />
-                                  Resized from {item.width} × {item.height}
-                                </span>
-                              ) : null}
-                              <span>{metadataLabel(imageAction.result.metadata)}</span>
-                            </div>
-                            {compressionMode === "target-size" && targetBytes ? (
-                              <p className="work-item__success" role="status">
-                                <MaterialSymbol name="check_circle" size={20} filled />
-                                {`Target met · ${formatBytes(imageAction.result.outputBytes)} of ${formatBytes(targetBytes)}`}
-                              </p>
-                            ) : null}
-                            {imageAction.result.warnings.map((warning) => (
-                              <p
-                                className="work-item__warning"
-                                key={warning.code}
-                                role="status"
-                              >
-                                {warning.message}
-                              </p>
-                            ))}
-                          </>
-                        ) : null}
-                        {imageAction.status === "failed" ? (
-                          <p className="work-item__error" role="alert">
-                            {imageAction.message}
+                            </>
+                          ) : null}
+                          <span className="work-item__specs-sep" aria-hidden="true">·</span>
+                          <span className="work-item__specs-meta">
+                            {metadataLabel(completedResult.metadata)}
+                          </span>
+                        </div>
+
+                        {compressionMode === "target-size" && targetBytes ? (
+                          <p className="work-item__success" role="status">
+                            <MaterialSymbol name="check_circle" size={20} filled />
+                            {`Target met · ${formatBytes(completedResult.outputBytes)} of ${formatBytes(targetBytes)}`}
                           </p>
                         ) : null}
-                        {imageAction.status === "cancelled" ? (
-                          <p className="work-item__meta" role="status">
-                            Compression cancelled.
+
+                        {completedResult.warnings.map((warning) => (
+                          <p
+                            className="work-item__warning"
+                            key={warning.code}
+                            role="status"
+                          >
+                            {warning.message}
                           </p>
-                        ) : null}
-                      </>
-                    ) : (
-                      <p className="work-item__error">{item.message}</p>
-                    )}
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                   <span className="work-item__actions">
                     {item.status === "ready" ? (
@@ -1199,12 +1228,13 @@ export function FileIntake({
                         </Button>
                       ) : imageAction.status === "completed" ? (
                         <a
+                          aria-label={`Download ${formatName(imageAction.result.outputFormat)}`}
                           className="work-item__download motion-safe-transition"
                           download={imageAction.result.outputName}
                           href={imageAction.downloadUrl}
+                          title={`Download ${formatName(imageAction.result.outputFormat)}`}
                         >
                           <MaterialSymbol name="download" size={20} />
-                          {`Download ${formatName(imageAction.result.outputFormat)}`}
                         </a>
                       ) : (
                         <Button
@@ -1242,27 +1272,30 @@ export function FileIntake({
         open={Boolean(comparison)}
         showTitle={false}
         title={comparison ? `Compare ${comparison.item.name}` : "Compare images"}
-        footer={
-          comparison ? (
-            <a
-              className="work-item__download motion-safe-transition"
-              download={comparison.action.result.outputName}
-              href={comparison.action.downloadUrl}
-            >
-              <MaterialSymbol name="download" size={20} />
-              Download optimized image
-            </a>
-          ) : null
-        }
       >
-        {comparison ? (
-          <div className="file-compare__content">
-            <div className="file-compare__viewer">
+        {comparison ? (() => {
+          const naturalWidth =
+            comparison.action.result.outputDimensions.width ||
+            comparison.item.width ||
+            1;
+          const naturalHeight =
+            comparison.action.result.outputDimensions.height ||
+            comparison.item.height ||
+            1;
+          const imageRatio = Number((naturalWidth / naturalHeight).toFixed(4));
+          return (
+            <div
+              className="file-compare__viewer"
+              style={{
+                aspectRatio: `${naturalWidth} / ${naturalHeight}`,
+                width: `min(92vw, 1120px, calc((82vh - 56px) * ${imageRatio}))`,
+              }}
+            >
               <div className="file-compare__layer file-compare__layer--optimized">
                 <Image
                   alt={`Optimized ${comparison.action.result.outputName}`}
                   fill
-                  sizes="(max-width: 720px) 100vw, 880px"
+                  sizes="(max-width: 1200px) 94vw, 1120px"
                   src={comparison.action.downloadUrl}
                   unoptimized
                 />
@@ -1274,7 +1307,7 @@ export function FileIntake({
                 <Image
                   alt={`Original ${comparison.item.name}`}
                   fill
-                  sizes="(max-width: 720px) 100vw, 880px"
+                  sizes="(max-width: 1200px) 94vw, 1120px"
                   src={comparison.item.previewUrl}
                   unoptimized
                 />
@@ -1307,76 +1340,8 @@ export function FileIntake({
                 value={comparePosition}
               />
             </div>
-
-            <div className="file-compare__facts">
-              <section className="file-compare__fact">
-                <div className="file-compare__fact-heading">
-                  <strong>Original</strong>
-                  <span>{formatName(comparison.item.format)}</span>
-                </div>
-                <div className="file-compare__size">
-                  <small>Before</small>
-                  <strong>{formatBytes(comparison.item.size)}</strong>
-                </div>
-                <dl className="file-compare__details">
-                  <div>
-                    <dt>Dimensions</dt>
-                    <dd>{`${comparison.item.width} × ${comparison.item.height} px`}</dd>
-                  </div>
-                </dl>
-              </section>
-              <section className="file-compare__fact file-compare__fact--optimized">
-                <div className="file-compare__fact-heading">
-                  <strong>Optimized</strong>
-                  <span>{formatName(comparison.action.result.outputFormat)}</span>
-                </div>
-                <div className="file-compare__optimized-summary">
-                  <div className="file-compare__size">
-                    <small>After</small>
-                    <strong>{formatBytes(comparison.action.result.outputBytes)}</strong>
-                  </div>
-                  <span
-                    className={classNames(
-                      "file-compare__saving",
-                      comparison.action.result.savedBytes >= 0
-                        ? "file-compare__saving--success"
-                        : "file-compare__saving--warning",
-                    )}
-                  >
-                    <MaterialSymbol
-                      name={
-                        comparison.action.result.savedBytes >= 0
-                          ? "south_east"
-                          : "north_east"
-                      }
-                      size={20}
-                    />
-                    {describeSavings(comparison.action.result)}
-                  </span>
-                </div>
-                <dl className="file-compare__details">
-                  <div>
-                    <dt>Dimensions</dt>
-                    <dd>{`${comparison.action.result.outputDimensions.width} × ${comparison.action.result.outputDimensions.height} px`}</dd>
-                  </div>
-                  <div>
-                    <dt>Metadata</dt>
-                    <dd>{metadataLabel(comparison.action.result.metadata)}</dd>
-                  </div>
-                </dl>
-                {comparison.item.width !==
-                  comparison.action.result.outputDimensions.width ||
-                comparison.item.height !==
-                  comparison.action.result.outputDimensions.height ? (
-                  <p className="file-compare__resize-note">
-                    <MaterialSymbol name="aspect_ratio" size={20} />
-                    Resized from {comparison.item.width} × {comparison.item.height} px
-                  </p>
-                ) : null}
-              </section>
-            </div>
-          </div>
-        ) : null}
+          );
+        })() : null}
       </Dialog>
     </section>
   );

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
-import type { CompressionPresetId, OutputFormat } from "@/features/compression";
 import type { AcceptedImageFormat } from "@/features/file-intake";
+import type { OutputFormat } from "@/features/compression";
+import type { CompressionMode, TargetPreset } from "@/features/file-intake";
 
 export type SeoRoutePath =
   | "/"
@@ -33,16 +34,20 @@ export type SeoRoutePath =
 
 type UploadPreset = {
   acceptedFormats: readonly AcceptedImageFormat[];
-  compressionPreset: CompressionPresetId;
+  compressionMode?: CompressionMode;
   outputFormat: OutputFormat;
+  quality?: number;
   settingsPanel: "default" | "format" | "resize" | "target-size";
   sourceMode: "upload";
+  targetPreset?: TargetPreset;
 };
 
 type ImageUrlPreset = {
-  compressionPreset: CompressionPresetId;
+  compressionMode?: CompressionMode;
   outputFormat: OutputFormat;
+  quality?: number;
   sourceMode: "image-url";
+  targetPreset?: TargetPreset;
 };
 
 type WebsiteUrlPreset = {
@@ -77,7 +82,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "custom",
       outputFormat: "keep",
       settingsPanel: "default",
       sourceMode: "upload",
@@ -98,7 +102,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/compress-image",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "custom",
       outputFormat: "keep",
       settingsPanel: "default",
       sourceMode: "upload",
@@ -121,7 +124,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/compress-jpg",
     preset: {
       acceptedFormats: JPEG_ONLY,
-      compressionPreset: "custom",
       outputFormat: "keep",
       settingsPanel: "default",
       sourceMode: "upload",
@@ -138,7 +140,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/compress-png",
     preset: {
       acceptedFormats: PNG_ONLY,
-      compressionPreset: "custom",
       outputFormat: "keep",
       settingsPanel: "default",
       sourceMode: "upload",
@@ -155,7 +156,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/compress-webp",
     preset: {
       acceptedFormats: WEBP_ONLY,
-      compressionPreset: "custom",
       outputFormat: "keep",
       settingsPanel: "default",
       sourceMode: "upload",
@@ -177,7 +177,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/image-converter",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "custom",
       outputFormat: "webp",
       settingsPanel: "format",
       sourceMode: "upload",
@@ -194,7 +193,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/jpg-to-webp",
     preset: {
       acceptedFormats: JPEG_ONLY,
-      compressionPreset: "custom",
       outputFormat: "webp",
       settingsPanel: "format",
       sourceMode: "upload",
@@ -211,7 +209,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/png-to-webp",
     preset: {
       acceptedFormats: PNG_ONLY,
-      compressionPreset: "custom",
       outputFormat: "webp",
       settingsPanel: "format",
       sourceMode: "upload",
@@ -228,7 +225,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/webp-to-jpg",
     preset: {
       acceptedFormats: WEBP_ONLY,
-      compressionPreset: "custom",
       outputFormat: "jpeg",
       settingsPanel: "format",
       sourceMode: "upload",
@@ -245,7 +241,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/png-to-jpg",
     preset: {
       acceptedFormats: PNG_ONLY,
-      compressionPreset: "custom",
       outputFormat: "jpeg",
       settingsPanel: "format",
       sourceMode: "upload",
@@ -262,7 +257,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/jpg-to-png",
     preset: {
       acceptedFormats: JPEG_ONLY,
-      compressionPreset: "custom",
       outputFormat: "png",
       settingsPanel: "format",
       sourceMode: "upload",
@@ -279,7 +273,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/jpg-to-avif",
     preset: {
       acceptedFormats: JPEG_ONLY,
-      compressionPreset: "custom",
       outputFormat: "avif",
       settingsPanel: "format",
       sourceMode: "upload",
@@ -296,7 +289,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/png-to-avif",
     preset: {
       acceptedFormats: PNG_ONLY,
-      compressionPreset: "custom",
       outputFormat: "avif",
       settingsPanel: "format",
       sourceMode: "upload",
@@ -313,7 +305,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/resize-image",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "custom",
       outputFormat: "keep",
       settingsPanel: "resize",
       sourceMode: "upload",
@@ -330,10 +321,11 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/compress-image-to-100kb",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "target-100",
+      compressionMode: "target-size",
       outputFormat: "webp",
       settingsPanel: "target-size",
       sourceMode: "upload",
+      targetPreset: "100",
     },
     published: true,
     relatedTools: [
@@ -351,10 +343,11 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/compress-image-to-200kb",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "target-200",
+      compressionMode: "target-size",
       outputFormat: "webp",
       settingsPanel: "target-size",
       sourceMode: "upload",
+      targetPreset: "200",
     },
     published: true,
     relatedTools: [
@@ -372,10 +365,11 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/compress-image-to-500kb",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "target-500",
+      compressionMode: "target-size",
       outputFormat: "webp",
       settingsPanel: "target-size",
       sourceMode: "upload",
+      targetPreset: "500",
     },
     published: true,
     relatedTools: ["/compress-image-to-200kb", "/compress-image-to-1mb", "/resize-image"],
@@ -389,10 +383,11 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/compress-image-to-1mb",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "target-1024",
+      compressionMode: "target-size",
       outputFormat: "webp",
       settingsPanel: "target-size",
       sourceMode: "upload",
+      targetPreset: "1024",
     },
     published: true,
     relatedTools: [
@@ -409,7 +404,6 @@ export const SEO_ROUTE_REGISTRY = [
     h1: "Compress an Image from a URL",
     path: "/compress-image-from-url",
     preset: {
-      compressionPreset: "custom",
       outputFormat: "keep",
       sourceMode: "image-url",
     },
@@ -475,7 +469,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/tinypng-alternative",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "custom",
       outputFormat: "keep",
       settingsPanel: "default",
       sourceMode: "upload",
@@ -496,7 +489,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/squoosh-alternative",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "custom",
       outputFormat: "keep",
       settingsPanel: "default",
       sourceMode: "upload",
@@ -517,7 +509,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/compressimage-alternative",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "custom",
       outputFormat: "keep",
       settingsPanel: "default",
       sourceMode: "upload",
@@ -538,7 +529,6 @@ export const SEO_ROUTE_REGISTRY = [
     path: "/iloveimg-alternative",
     preset: {
       acceptedFormats: ALL_FORMATS,
-      compressionPreset: "custom",
       outputFormat: "keep",
       settingsPanel: "default",
       sourceMode: "upload",

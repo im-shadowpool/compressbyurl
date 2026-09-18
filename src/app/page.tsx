@@ -20,29 +20,24 @@ export default function HomePage() {
         <section className="home-hero" aria-labelledby="page-title">
           <Container size="bleed">
             <div className="home-hero__frame">
-              <div className="home-hero__top">
+              <div className="home-hero__inner">
                 <div className="home-hero__copy motion-safe-enter">
                   <h1 id="page-title">Compress images from files or URLs.</h1>
                   <p>
                     Make images smaller, convert formats and fix heavy webpage assets.
                   </p>
                 </div>
-                <MediaFrame
-                  asset={media.hero.optimizer}
-                  className="home-hero__media motion-safe-enter"
-                  priority
-                  sizes="(max-width: 768px) 92vw, 44vw"
-                />
-              </div>
-              <div
-                className="home-hero__tool motion-safe-enter"
-                style={{ animationDelay: "80ms" }}
-              >
-                <ToolModeSwitcher />
+                <div
+                  className="home-hero__tool motion-safe-enter"
+                  style={{ animationDelay: "80ms" }}
+                >
+                  <ToolModeSwitcher />
+                </div>
               </div>
             </div>
           </Container>
         </section>
+
         <section
           className="home-capabilities"
           id="how-it-works"

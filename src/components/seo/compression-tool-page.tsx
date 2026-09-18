@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { MaterialSymbol } from "@/components/icons";
 import { Container } from "@/components/layout";
-import { MediaFrame } from "@/components/media";
 import { SiteFooter, SiteHeader } from "@/components/shell";
 import {
   getSeoRoute,
@@ -10,7 +9,6 @@ import {
   type SeoRoutePath,
 } from "@/config/seo-routes";
 import { ToolModeSwitcher } from "@/features/tool-shell";
-import { media } from "@/lib/media";
 
 import type { SeoToolPageContent } from "./tool-page-content";
 import { ToolStructuredData } from "./tool-structured-data";
@@ -46,13 +44,6 @@ function routeAssurances(route: SeoRouteDefinition) {
   ] as const;
 }
 
-function routeHeroAsset(route: SeoRouteDefinition) {
-  if (route.preset.sourceMode === "website-url") return media.features.website;
-  if (route.preset.sourceMode === "image-url") return media.features.delivery;
-  if (route.preset.settingsPanel === "resize") return media.hero.compressionFlow;
-  return media.features.compression;
-}
-
 export function SeoToolPage({ content, route }: SeoToolPageProps) {
   const relatedRoutes = publishedRelatedRoutes(route.relatedTools);
   const assurances = routeAssurances(route);
@@ -62,30 +53,26 @@ export function SeoToolPage({ content, route }: SeoToolPageProps) {
       <SiteHeader />
       <main>
         <section className="seo-tool-hero" aria-labelledby="page-title">
-          <Container>
+          <Container size="bleed">
             <div className="seo-tool-hero__frame">
-              <nav aria-label="Breadcrumb" className="seo-tool-breadcrumb">
-                <Link href="/">CompressByURL</Link>
-                <MaterialSymbol name="chevron_right" size={20} />
-                <span aria-current="page">{route.h1}</span>
-              </nav>
-              <div className="seo-tool-hero__copy">
-                <h1 id="page-title">{route.h1}</h1>
-                <p>{route.description}</p>
-                <MediaFrame
-                  asset={routeHeroAsset(route)}
-                  className="seo-tool-hero__media"
-                  priority
-                  sizes="(max-width: 768px) 62vw, 24vw"
-                />
-              </div>
-              <div className="seo-tool-hero__assurances" aria-label="Tool assurances">
-                {assurances.map((assurance) => (
-                  <span key={assurance.label}>
-                    <MaterialSymbol name={assurance.icon} size={20} />
-                    {assurance.label}
-                  </span>
-                ))}
+              <div className="seo-tool-hero__inner">
+                <nav aria-label="Breadcrumb" className="seo-tool-breadcrumb">
+                  <Link href="/">CompressByURL</Link>
+                  <MaterialSymbol name="chevron_right" size={20} />
+                  <span aria-current="page">{route.h1}</span>
+                </nav>
+                <div className="seo-tool-hero__copy">
+                  <h1 id="page-title">{route.h1}</h1>
+                  <p>{route.description}</p>
+                </div>
+                <div className="seo-tool-hero__assurances" aria-label="Tool assurances">
+                  {assurances.map((assurance) => (
+                    <span key={assurance.label}>
+                      <MaterialSymbol name={assurance.icon} size={20} />
+                      {assurance.label}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </Container>

@@ -50,7 +50,7 @@
 
   /* Layout */
   --layout-content-max: 67.5rem;
-  --layout-wide-max: 80rem;
+  --layout-wide-max: 86rem;
   --layout-gutter: clamp(1rem, 3vw, 2rem);
   --layout-bleed-gutter: clamp(0.75rem, 1.4vw, 1.25rem);
 

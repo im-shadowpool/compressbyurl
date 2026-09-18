@@ -19,12 +19,6 @@ export {
   type OutputNamingContext,
 } from "./naming";
 export {
-  COMPRESSION_PRESETS,
-  findCompressionPreset,
-  type CompressionPreset,
-  type CompressionPresetId,
-} from "./presets";
-export {
   DEFAULT_FILE_TOOL_PREFERENCES,
   FILE_TOOL_SETTINGS_KEY,
   FILE_TOOL_SETTINGS_VERSION,

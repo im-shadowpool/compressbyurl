@@ -10,15 +10,11 @@ import {
 } from "react";
 
 import {
-  COMPRESSION_PRESETS,
   DEFAULT_FILE_TOOL_PREFERENCES,
   FILE_TOOL_SETTINGS_VERSION,
-  findCompressionPreset,
   loadFileToolPreferences,
   resetFileToolPreferences,
   saveFileToolPreferences,
-  type CompressionPreset,
-  type CompressionPresetId,
   type FileToolPreferences,
   type NamingSettings,
   type OutputFormat,
@@ -37,14 +33,14 @@ export interface IntakeSample {
 
 export interface InitialCompressionSettings {
   compressionMode?: CompressionMode;
-  compressionPreset: CompressionPresetId;
-  outputFormat: OutputFormat;
+  customTarget?: string;
+  customTargetUnit?: TargetUnit;
+  outputFormat?: OutputFormat;
   quality?: number;
+  targetPreset?: TargetPreset;
 }
 
 export interface CompressionSettingsController {
-  activePreset: CompressionPresetId;
-  selectedPreset: CompressionPreset | undefined;
   allowDimensionReduction: boolean;
   compressionMode: CompressionMode;
   customNaming: boolean;
@@ -80,7 +76,6 @@ export interface CompressionSettingsController {
   revision: number;
   intakeSample: IntakeSample;
   setIntakeSample: (sample: IntakeSample) => void;
-  applyPreset: (value: string) => void;
   resetSavedPreferences: () => void;
   updateAspectRatio: (preserve: boolean) => void;
   updateCompressionMode: (mode: CompressionMode) => void;
@@ -118,26 +113,36 @@ function parseTargetBytes(value: string, unit: TargetUnit) {
   const amount = Number(value);
   if (!Number.isFinite(amount) || amount <= 0) return null;
   const bytes = Math.round(amount * (unit === "mb" ? 1024 * 1024 : 1024));
-  return Number.isSafeInteger(bytes) && bytes <= 1024 * 1024 * 1024 ? bytes : null;
+  return bytes > 0 && bytes <= 1024 * 1024 * 1024 ? bytes : null;
 }
 
 function isOutputFormat(value: string): value is OutputFormat {
-  return ["keep", "jpeg", "png", "webp", "avif"].includes(value);
+  return (
+    value === "keep" ||
+    value === "jpeg" ||
+    value === "png" ||
+    value === "webp" ||
+    value === "avif"
+  );
 }
 
 function isNameCase(value: string): value is NameCase {
   return ["lowercase", "unchanged", "uppercase"].includes(value);
 }
 
-function formatOutputName(format: OutputFormat) {
-  if (format === "keep") return "Keep original";
-  if (format === "jpeg") return "JPEG";
-  if (format === "webp") return "WebP";
-  return format.toUpperCase();
-}
-
 export function describeOutputFormat(format: OutputFormat) {
-  return formatOutputName(format);
+  switch (format) {
+    case "keep":
+      return "Keep original";
+    case "jpeg":
+      return "JPEG";
+    case "png":
+      return "PNG";
+    case "webp":
+      return "WebP";
+    case "avif":
+      return "AVIF";
+  }
 }
 
 export function describeCompressionMode(
@@ -148,11 +153,10 @@ export function describeCompressionMode(
   customTargetUnit: TargetUnit,
 ) {
   if (mode === "smart") return "Smart";
-  if (mode === "quality") return `${quality}% quality`;
-  if (targetPreset === "custom") {
-    return `Under ${customTarget || "?"} ${customTargetUnit.toUpperCase()}`;
-  }
-  return targetPreset === "1024" ? "Under 1 MB" : `Under ${targetPreset} KB`;
+  if (mode === "quality") return `Quality: ${quality}%`;
+  return targetPreset === "custom"
+    ? `Target: ${customTarget} ${customTargetUnit.toUpperCase()}`
+    : `Target: ${targetPreset === "1024" ? "1 MB" : `${targetPreset} KB`}`;
 }
 
 export function describeResize(
@@ -163,9 +167,9 @@ export function describeResize(
 ) {
   if (!enabled) return "Original size";
   if (mode === "exact") {
-    return width && height ? `${width} × ${height} exact` : "Exact size";
+    return width && height ? `${width} × ${height} px` : "Exact size";
   }
-  const parts = [width ? `≤ ${width}w` : null, height ? `≤ ${height}h` : null].filter(
+  const parts = [width ? `max ${width}w` : null, height ? `max ${height}h` : null].filter(
     Boolean,
   );
   return parts.length > 0 ? parts.join(" · ") : "Fit within a box";
@@ -177,48 +181,20 @@ function withInitialSettings(
 ): FileToolPreferences {
   if (!initialSettings) return preferences;
 
-  const preset = findCompressionPreset(initialSettings.compressionPreset);
-  if (!preset) {
-    return {
-      ...preferences,
-      activePreset: "custom",
-      allowDimensionReduction: false,
-      compressionMode:
-        initialSettings.compressionMode ?? DEFAULT_FILE_TOOL_PREFERENCES.compressionMode,
-      outputFormat: initialSettings.outputFormat,
-      quality: initialSettings.quality ?? DEFAULT_FILE_TOOL_PREFERENCES.quality,
-      resizeEnabled: false,
-      targetPreset: DEFAULT_FILE_TOOL_PREFERENCES.targetPreset,
-    };
-  }
-
-  const resize = preset.resize;
   return {
     ...preferences,
-    activePreset: preset.id,
-    allowDimensionReduction: preset.mode.mode === "target-size",
-    compressionMode: preset.mode.mode,
-    maxHeight:
-      resize.mode === "original"
-        ? preferences.maxHeight
-        : String(resize.mode === "max" ? (resize.maxHeight ?? "") : resize.height),
-    maxWidth:
-      resize.mode === "original"
-        ? preferences.maxWidth
-        : String(resize.mode === "max" ? (resize.maxWidth ?? "") : resize.width),
-    outputFormat: initialSettings.outputFormat,
-    preserveAspectRatio:
-      resize.mode === "exact"
-        ? resize.maintainAspectRatio
-        : preferences.preserveAspectRatio,
-    quality: preset.mode.mode === "quality" ? preset.mode.quality : preferences.quality,
-    resizeEnabled: resize.mode !== "original",
-    resizeMode: resize.mode === "exact" ? "exact" : "max",
-    stripMetadata: true,
-    targetPreset:
-      preset.mode.mode === "target-size"
-        ? (String(preset.mode.targetKilobytes) as TargetPreset)
-        : preferences.targetPreset,
+    allowDimensionReduction:
+      initialSettings.compressionMode === "target-size"
+        ? true
+        : preferences.allowDimensionReduction,
+    compressionMode:
+      initialSettings.compressionMode ?? preferences.compressionMode,
+    customTarget: initialSettings.customTarget ?? preferences.customTarget,
+    customTargetUnit:
+      initialSettings.customTargetUnit ?? preferences.customTargetUnit,
+    outputFormat: initialSettings.outputFormat ?? preferences.outputFormat,
+    quality: initialSettings.quality ?? preferences.quality,
+    targetPreset: initialSettings.targetPreset ?? preferences.targetPreset,
   };
 }
 
@@ -231,9 +207,6 @@ export function CompressionSettingsProvider({
 }) {
   const [initialPreferences] = useState(() =>
     withInitialSettings(DEFAULT_FILE_TOOL_PREFERENCES, initialSettings),
-  );
-  const [activePreset, setActivePreset] = useState<CompressionPresetId>(
-    initialPreferences.activePreset,
   );
   const [allowDimensionReduction, setAllowDimensionReduction] = useState(
     initialPreferences.allowDimensionReduction,
@@ -279,7 +252,6 @@ export function CompressionSettingsProvider({
   });
 
   function applyPreferences(preferences: FileToolPreferences) {
-    setActivePreset(preferences.activePreset);
     setAllowDimensionReduction(preferences.allowDimensionReduction);
     setCompressionMode(preferences.compressionMode);
     setCustomNaming(preferences.customNaming);
@@ -333,7 +305,6 @@ export function CompressionSettingsProvider({
     if (!preferencesLoaded) return;
     try {
       saveFileToolPreferences(window.localStorage, {
-        activePreset,
         allowDimensionReduction,
         compressionMode,
         customNaming,
@@ -361,7 +332,6 @@ export function CompressionSettingsProvider({
       // Storage can be unavailable in private or restricted browsing modes.
     }
   }, [
-    activePreset,
     allowDimensionReduction,
     compressionMode,
     customNaming,
@@ -396,7 +366,6 @@ export function CompressionSettingsProvider({
   }, []);
 
   function beginChange() {
-    setActivePreset("custom");
     setPreferencesNotice(null);
     setRevision((current) => current + 1);
   }
@@ -511,42 +480,6 @@ export function CompressionSettingsProvider({
     setMaxHeight(value);
   }
 
-  function applyPreset(value: string) {
-    const preset = COMPRESSION_PRESETS.find((candidate) => candidate.id === value);
-    if (!preset) {
-      setActivePreset("custom");
-      setPreferencesNotice(null);
-      setRevision((current) => current + 1);
-      return;
-    }
-    beginChange();
-    setActivePreset(preset.id);
-    setOutputFormat(preset.outputFormat);
-    setStripMetadata(true);
-    setCompressionMode(preset.mode.mode);
-    if (preset.mode.mode === "quality") setQuality(preset.mode.quality);
-    if (preset.mode.mode === "target-size") {
-      setTargetPreset(String(preset.mode.targetKilobytes) as TargetPreset);
-      setAllowDimensionReduction(true);
-    } else {
-      setAllowDimensionReduction(false);
-    }
-    if (preset.resize.mode === "original") {
-      setResizeEnabled(false);
-      return;
-    }
-    setResizeEnabled(true);
-    setResizeMode(preset.resize.mode);
-    if (preset.resize.mode === "max") {
-      setMaxWidth(preset.resize.maxWidth ? String(preset.resize.maxWidth) : "");
-      setMaxHeight(preset.resize.maxHeight ? String(preset.resize.maxHeight) : "");
-    } else {
-      setMaxWidth(String(preset.resize.width));
-      setMaxHeight(String(preset.resize.height));
-      setPreserveAspectRatio(preset.resize.maintainAspectRatio);
-    }
-  }
-
   function resetSavedPreferences() {
     try {
       resetFileToolPreferences(window.localStorage);
@@ -591,9 +524,7 @@ export function CompressionSettingsProvider({
     : { mode: "original" };
 
   const controller: CompressionSettingsController = {
-    activePreset,
     allowDimensionReduction,
-    applyPreset,
     compressionMode,
     customNaming,
     customTarget,
@@ -622,7 +553,6 @@ export function CompressionSettingsProvider({
     resizeMode,
     resetSavedPreferences,
     revision,
-    selectedPreset: findCompressionPreset(activePreset),
     sequencePadding,
     sequenceStart,
     setIntakeSample,

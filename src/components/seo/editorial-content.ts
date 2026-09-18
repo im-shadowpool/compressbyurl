@@ -173,12 +173,12 @@ const CONTENT = {
     ],
     toolLinks: [
       {
-        description: "Start with the 200 KB preset used in the worked example.",
+        description: "Start with the 200 KB target size used in the worked example.",
         label: "Compress to 200 KB",
         path: "/compress-image-to-200kb",
       },
       {
-        description: "Choose another preset or control quality manually.",
+        description: "Control quality, formats, or target size manually.",
         label: "Open the general compressor",
         path: "/compress-image",
       },

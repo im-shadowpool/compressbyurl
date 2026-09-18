@@ -48,15 +48,16 @@ export function ToolModeSwitcher({ preset }: ToolModeSwitcherProps = {}) {
     if (mode === "website-url") {
       return {
         compressionMode: "quality",
-        compressionPreset: "custom",
         outputFormat: "webp",
         quality: 90,
       };
     }
     return preset && preset.sourceMode !== "website-url"
       ? {
-          compressionPreset: preset.compressionPreset,
+          compressionMode: preset.compressionMode,
           outputFormat: preset.outputFormat,
+          quality: preset.quality,
+          targetPreset: preset.targetPreset,
         }
       : undefined;
   }, [mode, preset]);

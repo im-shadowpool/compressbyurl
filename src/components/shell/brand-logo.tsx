@@ -1,7 +1,6 @@
 import Image from "next/image";
 
 import { classNames } from "@/lib/class-names";
-import { media } from "@/lib/media";
 
 interface BrandLogoProps {
   className?: string;
@@ -11,13 +10,20 @@ interface BrandLogoProps {
 export function BrandLogo({ className, priority = false }: BrandLogoProps) {
   return (
     <span className={classNames("brand-logo", className)}>
-      <Image
-        alt=""
-        fill
-        priority={priority}
-        sizes="(max-width: 640px) 152px, 184px"
-        src={media.brand.logo.src}
-      />
+      <span className="brand-logo__mark">
+        <Image
+          alt=""
+          className="brand-logo__icon"
+          height={40}
+          priority={priority}
+          src="/icons/brand-avatar.png"
+          width={40}
+        />
+      </span>
+      <span className="brand-logo__wordmark">
+        <span className="brand-logo__name">CompressBy</span>
+        <span className="brand-logo__accent">URL</span>
+      </span>
     </span>
   );
 }

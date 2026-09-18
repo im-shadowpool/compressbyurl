@@ -2,11 +2,9 @@ import Link from "next/link";
 
 import { MaterialSymbol } from "@/components/icons";
 import { Container } from "@/components/layout";
-import { MediaFrame } from "@/components/media";
 import { SiteFooter, SiteHeader } from "@/components/shell";
 import { ARTICLE_PATHS, getEditorialContent } from "@/components/seo/editorial-content";
 import { createEditorialMetadata, getEditorialRoute } from "@/config/editorial-routes";
-import { media } from "@/lib/media";
 
 export const metadata = createEditorialMetadata("/learn");
 
@@ -18,20 +16,16 @@ export default function LearnPage() {
       <SiteHeader />
       <main>
         <header className="learn-hero">
-          <Container>
+          <Container size="bleed">
             <div className="learn-hero__frame">
-              <p>CompressByURL field notes</p>
-              <h1>{route.h1}</h1>
-              <div>
-                <p>{route.description}</p>
-                <span>Three focused guides · reviewed September 14, 2026</span>
+              <div className="learn-hero__inner">
+                <p>CompressByURL field notes</p>
+                <h1>{route.h1}</h1>
+                <div>
+                  <p>{route.description}</p>
+                  <span>Three focused guides · reviewed September 14, 2026</span>
+                </div>
               </div>
-              <MediaFrame
-                asset={media.hero.webGallery}
-                className="learn-hero__media"
-                priority
-                sizes="(max-width: 768px) 92vw, 56vw"
-              />
             </div>
           </Container>
         </header>

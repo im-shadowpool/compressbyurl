@@ -13,15 +13,21 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["productivity", "utilities", "photo"],
     icons: [
       {
-        src: "/media/hero/shiz%20(12).webp",
-        sizes: "1200x1200",
-        type: "image/webp",
+        src: "/icons/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
         purpose: "any",
       },
       {
-        src: "/icons/app-icon-maskable.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/icons/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
         purpose: "maskable",
       },
     ],

@@ -26,13 +26,15 @@ export const metadata: Metadata = {
   keywords: ["image compressor", "compress image", "image URL", "web image optimization"],
   icons: {
     icon: [
-      {
-        url: "/media/hero/shiz%20(12).webp",
-        type: "image/webp",
-        sizes: "1200x1200",
-      },
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icons/icon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icons/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    shortcut: "/media/hero/shiz%20(12).webp",
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
   },
   robots: {
     index: true,

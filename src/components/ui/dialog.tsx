@@ -28,6 +28,7 @@ export function Dialog({
   title,
 }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const mouseDownTarget = useRef<EventTarget | null>(null);
   const titleId = useId();
   const descriptionId = useId();
 
@@ -49,7 +50,12 @@ export function Dialog({
   }
 
   function handleBackdropClick(event: MouseEvent<HTMLDialogElement>) {
-    if (event.target === event.currentTarget) close();
+    if (
+      event.target === event.currentTarget &&
+      mouseDownTarget.current === event.currentTarget
+    ) {
+      close();
+    }
   }
 
   return (
@@ -66,6 +72,9 @@ export function Dialog({
       }}
       onClick={handleBackdropClick}
       onClose={() => onOpenChange(false)}
+      onMouseDown={(event) => {
+        mouseDownTarget.current = event.target;
+      }}
     >
       <div className={classNames("ui-dialog__surface", className)}>
         <div

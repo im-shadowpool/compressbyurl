@@ -56,7 +56,7 @@ async function verifyProtocol(client: CompressionWorkerClient) {
 }
 
 async function verifyTargetSizeSearch(client: CompressionWorkerClient) {
-  const response = await fetch("/media/hero/compression-flow.png");
+  const response = await fetch("/media/compression-flow.png");
   if (!response.ok) throw new Error("The target-size fixture could not be loaded.");
   const blob = await response.blob();
   const bitmap = await createImageBitmap(blob);

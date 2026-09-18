@@ -1,23 +1,9 @@
 import { z } from "zod";
 
-import type { CompressionPresetId } from "./presets";
 import type { OutputFormat } from "./types";
 
 export const FILE_TOOL_SETTINGS_KEY = "compress-by-url:file-tool-settings";
 export const FILE_TOOL_SETTINGS_VERSION = 1;
-
-const presetIds = [
-  "custom",
-  "website-hero",
-  "blog-image",
-  "thumbnail",
-  "avatar",
-  "email",
-  "target-100",
-  "target-200",
-  "target-500",
-  "target-1024",
-] as const satisfies readonly CompressionPresetId[];
 
 const outputFormats = [
   "keep",
@@ -29,7 +15,6 @@ const outputFormats = [
 
 const fileToolPreferencesSchema = z
   .object({
-    activePreset: z.enum(presetIds),
     allowDimensionReduction: z.boolean(),
     compressionMode: z.enum(["smart", "quality", "target-size"]),
     customNaming: z.boolean(),
@@ -53,12 +38,11 @@ const fileToolPreferencesSchema = z
     targetPreset: z.enum(["100", "200", "500", "1024", "custom"]),
     version: z.literal(FILE_TOOL_SETTINGS_VERSION),
   })
-  .strict();
+  .strip();
 
 export type FileToolPreferences = z.infer<typeof fileToolPreferencesSchema>;
 
 export const DEFAULT_FILE_TOOL_PREFERENCES: FileToolPreferences = {
-  activePreset: "custom",
   allowDimensionReduction: false,
   compressionMode: "smart",
   customNaming: false,
