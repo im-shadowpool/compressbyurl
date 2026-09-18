@@ -560,6 +560,16 @@ export function CompressionSettingsMenu({
     const width = Math.min(400, window.innerWidth - margin * 2);
     dropdown.style.width = `${width}px`;
 
+    if (window.matchMedia("(max-width: 40rem)").matches) {
+      dropdown.style.left = `${margin}px`;
+      dropdown.style.top = "auto";
+      dropdown.style.bottom = `${margin}px`;
+      dropdown.dataset.placement = "above";
+      return;
+    }
+
+    dropdown.style.bottom = "auto";
+
     const rect = trigger.getBoundingClientRect();
     const height = dropdown.offsetHeight;
     const fitsBelow = rect.bottom + gap + height <= window.innerHeight - margin;

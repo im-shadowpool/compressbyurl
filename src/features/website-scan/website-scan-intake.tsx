@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import Image from "next/image";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { MaterialSymbol } from "@/components/icons";
 import { Button, Input } from "@/components/ui";
@@ -13,8 +14,6 @@ import {
   type WebsiteImageCandidate,
   type WebsiteScanManifest,
 } from "./types";
-
-const MAX_SELECTED_IMAGES = 20;
 
 export type WebsiteScanPurpose = "download" | "optimizer" | "scanner";
 
@@ -69,6 +68,18 @@ interface CandidateMeasurement {
   format: string;
   height: number | null;
   width: number | null;
+}
+
+interface AuditedCandidate {
+  candidate: WebsiteImageCandidate;
+  file: File;
+  measurement: CandidateMeasurement;
+  previewUrl: string;
+}
+
+interface ScanProgress {
+  complete: number;
+  total: number;
 }
 
 function normalizeWebsiteUrl(value: string) {
@@ -143,12 +154,12 @@ function recommendation(candidate: WebsiteImageCandidate) {
   if (isKnownUnsupported(candidate))
     return "Use a static JPEG, PNG, WebP or AVIF source.";
   if ((candidate.declaredWidth ?? 0) > 2000 || (candidate.declaredHeight ?? 0) > 2000) {
-    return "Resize to its largest rendered size, then apply Smart compression.";
+    return "Resize to its largest rendered size, then convert to WebP at 90% quality.";
   }
   if (/\.(?:jpe?g|png)(?:$|[?#])/i.test(candidate.url)) {
-    return "Try WebP with the Blog Image or Website Hero preset.";
+    return "Convert to WebP at 90% quality, then compare before replacing it.";
   }
-  return "Apply Smart compression and compare before replacing it.";
+  return "Compress at 90% quality and compare before replacing it.";
 }
 
 function uniqueFile(file: File, usedNames: Set<string>) {
@@ -187,6 +198,19 @@ function candidateFormat(candidate: WebsiteImageCandidate) {
   return match?.[1]?.replace("jpeg", "jpg").toUpperCase() ?? "Unknown format";
 }
 
+function estimateSavings(measurement: CandidateMeasurement) {
+  const rate =
+    measurement.format === "PNG"
+      ? 0.42
+      : ["JPG", "JPEG"].includes(measurement.format)
+        ? 0.24
+        : measurement.format === "WEBP"
+          ? 0.1
+          : 0.05;
+  const sizeFactor = measurement.bytes < 50 * 1024 ? 0.55 : 1;
+  return Math.round(measurement.bytes * rate * sizeFactor);
+}
+
 function filenameKey(candidate: WebsiteImageCandidate) {
   try {
     return new URL(candidate.url).pathname
@@ -208,25 +232,24 @@ export function WebsiteScanIntake({
   const copy = PURPOSE_COPY[purpose];
   const [url, setUrl] = useState("");
   const [manifest, setManifest] = useState<WebsiteScanManifest | null>(null);
+  const [auditedCandidates, setAuditedCandidates] = useState<AuditedCandidate[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [measurements, setMeasurements] = useState<Record<string, CandidateMeasurement>>(
-    {},
-  );
   const [prepared, setPrepared] = useState<PreparedAudit | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
-  const [importErrors, setImportErrors] = useState<string[]>([]);
   const [scanning, setScanning] = useState(false);
-  const [preparing, setPreparing] = useState(false);
-  const [preparedCount, setPreparedCount] = useState(0);
+  const [scanProgress, setScanProgress] = useState<ScanProgress | null>(null);
+  const [excludedCount, setExcludedCount] = useState(0);
 
-  const supported = useMemo(
-    () =>
-      manifest?.candidates.filter((candidate) => !isKnownUnsupported(candidate)) ?? [],
-    [manifest],
+  useEffect(
+    () => () => {
+      auditedCandidates.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+    },
+    [auditedCandidates],
   );
+
   const duplicateFilenames = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const candidate of manifest?.candidates ?? []) {
+    for (const { candidate } of auditedCandidates) {
       const key = filenameKey(candidate);
       if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
     }
@@ -235,7 +258,21 @@ export function WebsiteScanIntake({
         .filter(([, count]) => count > 1)
         .map(([key]) => key),
     );
-  }, [manifest]);
+  }, [auditedCandidates]);
+  const totalImageBytes = useMemo(
+    () => auditedCandidates.reduce((total, item) => total + item.measurement.bytes, 0),
+    [auditedCandidates],
+  );
+  const estimatedSavingsBytes = useMemo(
+    () =>
+      auditedCandidates.reduce(
+        (total, item) => total + estimateSavings(item.measurement),
+        0,
+      ),
+    [auditedCandidates],
+  );
+  const estimatedSavingsPercent =
+    totalImageBytes > 0 ? (estimatedSavingsBytes / totalImageBytes) * 100 : 0;
 
   async function scanWebsite(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -250,10 +287,11 @@ export function WebsiteScanIntake({
 
     setScanning(true);
     setManifest(null);
+    setAuditedCandidates([]);
     setSelected(new Set());
     setPrepared(null);
-    setImportErrors([]);
-    setMeasurements({});
+    setExcludedCount(0);
+    setScanProgress(null);
     try {
       const response = await fetch("/api/website-scan", {
         method: "POST",
@@ -274,13 +312,59 @@ export function WebsiteScanIntake({
       }
       const parsed = websiteScanManifestSchema.safeParse(body);
       if (!parsed.success) throw new Error("The scanner returned an invalid manifest.");
-      setManifest(parsed.data);
+
+      const queue = parsed.data.candidates.filter(
+        (candidate) => !isKnownUnsupported(candidate),
+      );
+      const fetched: Array<AuditedCandidate | undefined> = Array.from({
+        length: queue.length,
+      });
+      let nextIndex = 0;
+      let complete = 0;
+      setScanProgress({ complete: 0, total: queue.length });
+      await Promise.all(
+        Array.from({ length: Math.min(3, queue.length) }, async () => {
+          while (nextIndex < queue.length) {
+            const candidateIndex = nextIndex;
+            const candidate = queue[candidateIndex];
+            nextIndex += 1;
+            if (!candidate) continue;
+            try {
+              const result = await fetchImageUrl(candidate.url);
+              const measurement = await measureImage(result.file);
+              fetched[candidateIndex] = {
+                candidate,
+                file: result.file,
+                measurement,
+                previewUrl: URL.createObjectURL(result.file),
+              };
+            } catch {
+              // Unsupported, oversized and unreachable resources are omitted.
+            } finally {
+              complete += 1;
+              setScanProgress({ complete, total: queue.length });
+            }
+          }
+        }),
+      );
+      const supportedItems = fetched.filter((item): item is AuditedCandidate =>
+        Boolean(item),
+      );
+      const supportedManifest = {
+        ...parsed.data,
+        candidates: supportedItems.map((item) => item.candidate),
+      };
+      setManifest(supportedManifest);
+      setAuditedCandidates(supportedItems);
+      setSelected(new Set(supportedItems.map((item) => item.candidate.id)));
+      setExcludedCount(parsed.data.candidates.length - supportedItems.length);
     } catch (error) {
       setScanError(
         error instanceof Error ? error.message : "The webpage could not be scanned.",
       );
     } finally {
       setScanning(false);
+      setScanProgress(null);
     }
   }
 
@@ -288,62 +372,23 @@ export function WebsiteScanIntake({
     setSelected((current) => {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
-      else if (next.size < MAX_SELECTED_IMAGES) next.add(id);
+      else next.add(id);
       return next;
     });
     setPrepared(null);
   }
 
-  async function prepareSelectedImages() {
+  function prepareSelectedImages() {
     if (!manifest || selected.size === 0) return;
-    const queue = manifest.candidates.filter((candidate) => selected.has(candidate.id));
-    const fetched: Array<{ candidate: WebsiteImageCandidate; file: File } | undefined> =
-      Array.from({ length: queue.length });
-    const failed: Array<string | undefined> = Array.from({ length: queue.length });
     const sources: Record<string, string> = {};
-    const measured: Record<string, CandidateMeasurement> = {};
-    let nextIndex = 0;
-    let complete = 0;
-
-    setPreparing(true);
-    setPreparedCount(0);
-    setPrepared(null);
-    setImportErrors([]);
-    await Promise.all(
-      Array.from({ length: Math.min(3, queue.length) }, async () => {
-        while (nextIndex < queue.length) {
-          const candidateIndex = nextIndex;
-          const candidate = queue[candidateIndex];
-          nextIndex += 1;
-          if (!candidate) continue;
-          try {
-            const result = await fetchImageUrl(candidate.url);
-            fetched[candidateIndex] = { candidate, file: result.file };
-          } catch (error) {
-            failed[candidateIndex] = `${new URL(candidate.url).hostname}: ${
-              error instanceof Error ? error.message : "image fetch failed"
-            }`;
-          } finally {
-            complete += 1;
-            setPreparedCount(complete);
-          }
-        }
-      }),
-    );
-
     const usedNames = new Set<string>();
     const files: File[] = [];
-    for (const result of fetched) {
-      if (!result) continue;
-      const file = uniqueFile(result.file, usedNames);
-      sources[file.name] = result.candidate.url;
-      measured[result.candidate.id] = await measureImage(file);
+    for (const item of auditedCandidates) {
+      if (!selected.has(item.candidate.id)) continue;
+      const file = uniqueFile(item.file, usedNames);
+      sources[file.name] = item.candidate.url;
       files.push(file);
     }
-    const failures = failed.filter((message): message is string => Boolean(message));
-
-    setMeasurements((current) => ({ ...current, ...measured }));
-    setImportErrors(failures);
     if (files.length > 0) {
       setPrepared((current) => ({
         files,
@@ -351,7 +396,6 @@ export function WebsiteScanIntake({
         replacementSources: sources,
       }));
     }
-    setPreparing(false);
   }
 
   return (
@@ -388,7 +432,11 @@ export function WebsiteScanIntake({
           loading={scanning}
           type="submit"
         >
-          {scanning ? copy.scanning : copy.submit}
+          {scanning
+            ? scanProgress
+              ? `Checking ${scanProgress.complete} of ${scanProgress.total}`
+              : copy.scanning
+            : copy.submit}
         </Button>
       </form>
       <p className="mode-panel__note">
@@ -398,49 +446,44 @@ export function WebsiteScanIntake({
 
       {manifest ? (
         <section className="website-audit" aria-labelledby="website-audit-title">
-          <header className="website-audit__header">
+          <dl className="website-audit__summary">
+            <div className="website-audit__url">
+              <dt id="website-audit-title">Website URL</dt>
+              <dd>
+                <a href={manifest.page.url} rel="noreferrer" target="_blank">
+                  {manifest.page.url}
+                </a>
+              </dd>
+            </div>
             <div>
-              <p className="website-audit__eyebrow">Scan complete</p>
-              <h3 id="website-audit-title">
-                {manifest.page.title ?? new URL(manifest.page.url).hostname}
-              </h3>
-              <p>
-                {manifest.candidates.length} candidates · {supported.length} supported ·
-                select up to {MAX_SELECTED_IMAGES}
-              </p>
+              <dt>Images found</dt>
+              <dd>{auditedCandidates.length}</dd>
+              <span>
+                {excludedCount > 0
+                  ? `${excludedCount} unsupported or unavailable excluded`
+                  : "Supported static images only"}
+              </span>
             </div>
-            <div className="website-audit__actions">
-              <Button
-                size="small"
-                variant="secondary"
-                onClick={() =>
-                  setSelected(
-                    new Set(
-                      supported
-                        .slice(0, MAX_SELECTED_IMAGES)
-                        .map((candidate) => candidate.id),
-                    ),
-                  )
-                }
-              >
-                Select supported
-              </Button>
-              <Button size="small" variant="ghost" onClick={() => setSelected(new Set())}>
-                Clear
-              </Button>
+            <div>
+              <dt>Total image size</dt>
+              <dd>{formatBytes(totalImageBytes)}</dd>
+              <span>Combined source files</span>
             </div>
-          </header>
+            <div className="website-audit__savings">
+              <dt>Estimated savings</dt>
+              <dd>{formatBytes(estimatedSavingsBytes)}</dd>
+              <span>{`${estimatedSavingsPercent.toFixed(1)}% · WebP at 90%`}</span>
+            </div>
+          </dl>
 
-          {manifest.candidates.length === 0 ? (
+          {auditedCandidates.length === 0 ? (
             <div className="website-audit__empty">
               <MaterialSymbol name="image_not_supported" size={32} />
-              <p>No static image candidates were found in the page HTML.</p>
+              <p>No supported static images could be loaded from this webpage.</p>
             </div>
           ) : (
-            <ul className="website-audit__list" aria-label="Discovered image candidates">
-              {manifest.candidates.map((candidate) => {
-                const unsupported = isKnownUnsupported(candidate);
-                const measurement = measurements[candidate.id];
+            <ul className="website-audit__list" aria-label="Supported images found">
+              {auditedCandidates.map(({ candidate, measurement, previewUrl }) => {
                 const key = filenameKey(candidate);
                 const issues = candidateIssues(
                   candidate,
@@ -453,10 +496,6 @@ export function WebsiteScanIntake({
                     <label className="website-candidate__select">
                       <input
                         checked={checked}
-                        disabled={
-                          unsupported ||
-                          (!checked && selected.size >= MAX_SELECTED_IMAGES)
-                        }
                         onChange={() => toggleCandidate(candidate.id)}
                         type="checkbox"
                       />
@@ -464,6 +503,15 @@ export function WebsiteScanIntake({
                         Select {candidate.alt ?? candidate.url}
                       </span>
                     </label>
+                    <div className="website-candidate__preview">
+                      <Image
+                        alt=""
+                        height={88}
+                        src={previewUrl}
+                        unoptimized
+                        width={112}
+                      />
+                    </div>
                     <div className="website-candidate__body">
                       <div className="website-candidate__topline">
                         <strong>{candidate.alt || sourceLabel(candidate.source)}</strong>
@@ -502,29 +550,18 @@ export function WebsiteScanIntake({
             <div>
               <strong>{selected.size} selected</strong>
               <span>
-                Fetched three at a time; optimization remains in browser workers.
+                Supported images are selected by default. Optimization remains in browser
+                workers.
               </span>
             </div>
             <Button
               disabled={selected.size === 0}
               leadingIcon={<MaterialSymbol name="auto_fix_high" size={20} />}
-              loading={preparing}
-              onClick={() => void prepareSelectedImages()}
+              onClick={prepareSelectedImages}
             >
-              {preparing ? `Preparing ${preparedCount} of ${selected.size}` : copy.action}
+              {copy.action}
             </Button>
           </div>
-
-          {importErrors.length > 0 ? (
-            <div className="website-audit__errors" role="alert">
-              <strong>{importErrors.length} images could not be imported</strong>
-              <ul>
-                {importErrors.map((message) => (
-                  <li key={message}>{message}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
 
           {prepared ? (
             <section

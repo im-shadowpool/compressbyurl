@@ -10,6 +10,7 @@
 }
 
 .learn-hero__frame {
+  position: relative;
   display: grid;
   min-height: 34rem;
   grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.62fr);
@@ -19,6 +20,18 @@
   border-radius: var(--radius-lg);
   background: var(--brand-canvas);
   color: var(--brand-surface-1);
+}
+
+.learn-hero__media {
+  width: 100%;
+  height: clamp(10rem, 20vw, 14rem);
+  grid-column: 1 / -1;
+  aspect-ratio: auto !important;
+  border-radius: var(--radius-md);
+}
+
+.learn-hero__media .media-frame__fallback {
+  object-fit: cover;
 }
 
 .learn-hero__frame > p {
@@ -176,7 +189,7 @@
   max-width: 68ch;
   margin: var(--spacing-lg) 0 0;
   color: var(--brand-ink-secondary);
-  font-size: 1.0625rem;
+  font-size: var(--type-body-lg-size);
   line-height: 1.75;
 }
 

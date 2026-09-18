@@ -13,9 +13,9 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["productivity", "utilities", "photo"],
     icons: [
       {
-        src: "/icons/app-icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/media/hero/shiz%20(12).webp",
+        sizes: "1200x1200",
+        type: "image/webp",
         purpose: "any",
       },
       {

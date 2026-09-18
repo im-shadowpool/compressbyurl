@@ -13,7 +13,7 @@ const allowedImageTypes = new Set<string>(STATIC_IMAGE_MIME_TYPES);
 export async function POST(request: Request) {
   const rateLimit = consumeRateLimit(
     `image:${requestClientKey(request)}`,
-    30,
+    100,
     60 * 60 * 1000,
   );
   if (!rateLimit.allowed) {

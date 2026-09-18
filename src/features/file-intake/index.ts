@@ -6,6 +6,7 @@ export {
   useCompressionSettings,
   type CompressionMode,
   type CompressionSettingsController,
+  type InitialCompressionSettings,
   type IntakeSample,
   type NameCase,
   type ResizeMode,

@@ -24,6 +24,16 @@ export const metadata: Metadata = {
     "Compress images from your device or a public URL. Fast, private, browser-first image optimization.",
   applicationName: "CompressByURL",
   keywords: ["image compressor", "compress image", "image URL", "web image optimization"],
+  icons: {
+    icon: [
+      {
+        url: "/media/hero/shiz%20(12).webp",
+        type: "image/webp",
+        sizes: "1200x1200",
+      },
+    ],
+    shortcut: "/media/hero/shiz%20(12).webp",
+  },
   robots: {
     index: true,
     follow: true,

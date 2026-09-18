@@ -5,7 +5,11 @@ import { useMemo, useState } from "react";
 import { MaterialSymbol } from "@/components/icons";
 import { SegmentedControl } from "@/components/ui";
 import type { SeoToolPreset } from "@/config/seo-routes";
-import { CompressionSettingsProvider, FileIntake } from "@/features/file-intake";
+import {
+  CompressionSettingsProvider,
+  FileIntake,
+  type InitialCompressionSettings,
+} from "@/features/file-intake";
 import { ImageUrlIntake } from "@/features/image-url";
 import { WebsiteScanIntake } from "@/features/website-scan";
 
@@ -40,17 +44,22 @@ interface ToolModeSwitcherProps {
 
 export function ToolModeSwitcher({ preset }: ToolModeSwitcherProps = {}) {
   const [mode, setMode] = useState<ToolMode>(preset?.sourceMode ?? "upload");
-  const activeMode = modes.find((item) => item.value === mode) ?? modes[0];
-  const initialSettings = useMemo(
-    () =>
-      preset && preset.sourceMode !== "website-url"
-        ? {
-            compressionPreset: preset.compressionPreset,
-            outputFormat: preset.outputFormat,
-          }
-        : undefined,
-    [preset],
-  );
+  const initialSettings = useMemo<InitialCompressionSettings | undefined>(() => {
+    if (mode === "website-url") {
+      return {
+        compressionMode: "quality",
+        compressionPreset: "custom",
+        outputFormat: "webp",
+        quality: 90,
+      };
+    }
+    return preset && preset.sourceMode !== "website-url"
+      ? {
+          compressionPreset: preset.compressionPreset,
+          outputFormat: preset.outputFormat,
+        }
+      : undefined;
+  }, [mode, preset]);
   const featuredSettingsGroup =
     preset?.sourceMode === "upload" && preset.settingsPanel !== "default"
       ? preset.settingsPanel === "target-size"
@@ -76,20 +85,22 @@ export function ToolModeSwitcher({ preset }: ToolModeSwitcherProps = {}) {
             value={mode}
           />
         </div>
-        <div className="tool-stage" key={mode}>
-          {activeMode.value === "upload" ? (
+        <div className="tool-stage">
+          <div className="tool-stage__panel" hidden={mode !== "upload"}>
             <FileIntake
               acceptedFormats={
                 preset?.sourceMode === "upload" ? preset.acceptedFormats : undefined
               }
             />
-          ) : null}
-          {activeMode.value === "image-url" ? <ImageUrlIntake /> : null}
-          {activeMode.value === "website-url" ? (
+          </div>
+          <div className="tool-stage__panel" hidden={mode !== "image-url"}>
+            <ImageUrlIntake />
+          </div>
+          <div className="tool-stage__panel" hidden={mode !== "website-url"}>
             <WebsiteScanIntake
               purpose={preset?.sourceMode === "website-url" ? preset.purpose : undefined}
             />
-          ) : null}
+          </div>
         </div>
         <div className="tool-shell__trust" id="privacy">
           <MaterialSymbol name="lock" size={20} />

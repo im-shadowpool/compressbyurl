@@ -13,7 +13,7 @@ const CONTENT = {
   "/website-image-optimizer": {
     facts: [
       { label: "Scan scope", value: "One public webpage per scan" },
-      { label: "Selection", value: "Up to 20 supported candidates" },
+      { label: "Selection", value: "Supported images selected by default" },
       { label: "Output", value: "Optimized files plus replacement map" },
     ],
     faq: [
@@ -29,12 +29,12 @@ const CONTENT = {
       },
       {
         answer:
-          "After you select candidates, supported files are imported in a bounded queue and passed to browser workers. The ZIP can include replacement-map.json so source URLs can be matched to output filenames.",
+          "Supported files are verified and loaded three at a time, selected by default and then passed to browser workers. The ZIP can include replacement-map.json so source URLs can be matched to output filenames.",
         question: "How are replacement files created?",
       },
     ],
     guideIntro:
-      "Scan one public page, inspect discoverable candidates, select the assets worth changing, then compress and package them in the same local engine used for uploads.",
+      "Scan one public page, review verified supported images and their measured size, deselect anything you do not need, then compress and package the rest in the same local engine used for uploads.",
     guideTitle: "Move from webpage evidence to replacement files.",
     howItWorks: [
       {
@@ -42,11 +42,11 @@ const CONTENT = {
         title: "Scan one page safely",
       },
       {
-        body: "Review candidate sources, declared dimensions, formats and heuristic issue labels. Select up to 20 supported images.",
+        body: "Review thumbnails, measured sizes, dimensions, formats and heuristic issue labels. Supported images start selected so you only need to remove assets you do not want.",
         title: "Choose real opportunities",
       },
       {
-        body: "Fetch selected assets three at a time, optimize them in browser workers and download individual replacements or a mapped ZIP.",
+        body: "Use the already verified assets, optimize them in browser workers and download individual replacements or a mapped ZIP.",
         title: "Build the replacement bundle",
       },
     ],
@@ -88,7 +88,7 @@ const CONTENT = {
       },
       {
         answer:
-          "Yes. Select supported candidates to measure and inspect them locally, then use the same worker-backed optimizer when an audit finding is worth acting on.",
+          "Yes. Supported static images are measured, previewed and selected automatically after the scan. Deselect anything you do not need, then send the rest to the same worker-backed optimizer.",
         question: "Can I optimize an image after scanning?",
       },
     ],
@@ -101,12 +101,12 @@ const CONTENT = {
         title: "Validate the target",
       },
       {
-        body: "The bounded HTML parser collects supported image references and records source type, alt text and declared dimensions when present.",
+        body: "The bounded HTML parser collects image references, then verifies supported static files three at a time and measures their bytes and natural dimensions.",
         title: "Build the candidate manifest",
       },
       {
-        body: "Review issue labels and recommendations. Import only the candidates that need real byte and natural-dimension measurement.",
-        title: "Investigate selectively",
+        body: "Review the URL, supported-image count, combined source weight, estimated WebP savings, thumbnails and issue labels. All supported images start selected.",
+        title: "Review measured results",
       },
     ],
     privacy:

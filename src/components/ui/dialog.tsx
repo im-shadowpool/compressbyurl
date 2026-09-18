@@ -14,6 +14,7 @@ export interface DialogProps {
   children: ReactNode;
   footer?: ReactNode;
   className?: string;
+  showTitle?: boolean;
 }
 
 export function Dialog({
@@ -23,6 +24,7 @@ export function Dialog({
   footer,
   onOpenChange,
   open,
+  showTitle = true,
   title,
 }: DialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -33,7 +35,12 @@ export function Dialog({
     const dialog = dialogRef.current;
     if (!dialog) return;
 
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      dialog.showModal();
+      dialog.scrollTop = 0;
+      dialog.querySelector<HTMLElement>(".ui-dialog__body")?.scrollTo(0, 0);
+      dialog.focus({ preventScroll: true });
+    }
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
@@ -48,9 +55,11 @@ export function Dialog({
   return (
     <dialog
       ref={dialogRef}
-      aria-describedby={description ? descriptionId : undefined}
-      aria-labelledby={titleId}
+      aria-describedby={showTitle && description ? descriptionId : undefined}
+      aria-label={showTitle ? undefined : title}
+      aria-labelledby={showTitle ? titleId : undefined}
       className="ui-dialog"
+      tabIndex={-1}
       onCancel={(event) => {
         event.preventDefault();
         close();
@@ -59,11 +68,18 @@ export function Dialog({
       onClose={() => onOpenChange(false)}
     >
       <div className={classNames("ui-dialog__surface", className)}>
-        <div className="ui-dialog__header">
-          <div>
-            <h2 id={titleId}>{title}</h2>
-            {description ? <p id={descriptionId}>{description}</p> : null}
-          </div>
+        <div
+          className={classNames(
+            "ui-dialog__header",
+            !showTitle && "ui-dialog__header--compact",
+          )}
+        >
+          {showTitle ? (
+            <div>
+              <h2 id={titleId}>{title}</h2>
+              {description ? <p id={descriptionId}>{description}</p> : null}
+            </div>
+          ) : null}
           <IconButton
             icon={<MaterialSymbol name="close" />}
             label="Close dialog"

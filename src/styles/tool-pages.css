@@ -39,10 +39,18 @@
 
 .seo-tool-hero__copy {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.65fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(16rem, 0.62fr) minmax(12rem, 0.48fr);
   align-items: end;
   gap: clamp(2rem, 7vw, 7rem);
   margin-top: clamp(3rem, 7vw, 5rem);
+}
+
+.seo-tool-hero__media {
+  width: 100%;
+  max-height: 18rem;
+  align-self: center;
+  overflow: hidden;
+  border-radius: var(--radius-md);
 }
 
 .seo-tool-hero h1 {
@@ -202,7 +210,7 @@
 
 .seo-tool-comparison__heading h2 {
   max-width: 14ch;
-  font-size: clamp(var(--type-heading-md-size), 3.6vw, 3.75rem);
+  font-size: clamp(var(--type-heading-md-size), 3.6vw, var(--type-display-lg-size));
 }
 
 .seo-tool-comparison__heading > p {
@@ -461,6 +469,11 @@
 
   .seo-tool-hero__copy {
     gap: var(--spacing-lg);
+  }
+
+  .seo-tool-hero__media {
+    width: min(100%, 25rem);
+    margin-inline: auto;
   }
 
   .seo-tool-hero__copy p,

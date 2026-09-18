@@ -7,6 +7,7 @@ import {
   type MouseEvent,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -59,7 +60,7 @@ type ZipState =
 
 function describeSavings(result: CompressionResult) {
   const magnitude = Math.abs(result.savedPercent).toFixed(1);
-  return result.savedBytes >= 0 ? `−${magnitude}%` : `+${magnitude}%`;
+  return result.savedBytes >= 0 ? `${magnitude}% smaller` : `${magnitude}% larger`;
 }
 
 function progressLabel(progress: CompressionProgress) {
@@ -143,6 +144,7 @@ export function FileIntake({
   replacementSources,
 }: FileIntakeProps = {}) {
   const settings = useCompressionSettings();
+  const titleId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const browseButtonRef = useRef<HTMLButtonElement>(null);
   const regionRef = useRef<HTMLElement>(null);
@@ -157,6 +159,7 @@ export function FileIntake({
   const batchGeneration = useRef(0);
   const zipUrl = useRef<string | null>(null);
   const consumedInitialFiles = useRef(false);
+  const comparisonHoverTimer = useRef<number | null>(null);
   const [dragging, setDragging] = useState(false);
   const [items, setItems] = useState<IntakeItem[]>([]);
   const [imageActions, setImageActions] = useState<
@@ -167,6 +170,7 @@ export function FileIntake({
   const [bulkDownloadMessage, setBulkDownloadMessage] = useState<string | null>(null);
   const [zipState, setZipState] = useState<ZipState>({ status: "idle" });
   const [compareItemId, setCompareItemId] = useState<string | null>(null);
+  const [comparePosition, setComparePosition] = useState(50);
   const [settingsNotice, setSettingsNotice] = useState(false);
 
   const {
@@ -216,7 +220,16 @@ export function FileIntake({
       objectUrls.clear();
       generatedOutputUrls.forEach((outputUrl) => URL.revokeObjectURL(outputUrl));
       generatedOutputUrls.clear();
+      if (comparisonHoverTimer.current !== null) {
+        window.clearTimeout(comparisonHoverTimer.current);
+      }
     };
+  }, []);
+
+  const cancelComparisonHover = useCallback(() => {
+    if (comparisonHoverTimer.current === null) return;
+    window.clearTimeout(comparisonHoverTimer.current);
+    comparisonHoverTimer.current = null;
   }, []);
 
   function releaseOutput(id: string) {
@@ -803,8 +816,8 @@ export function FileIntake({
   );
 
   return (
-    <section ref={regionRef} aria-labelledby="file-intake-title" className="file-intake">
-      <h2 className="visually-hidden" id="file-intake-title">
+    <section ref={regionRef} aria-labelledby={titleId} className="file-intake">
+      <h2 className="visually-hidden" id={titleId}>
         Upload and compress images
       </h2>
       <input
@@ -955,13 +968,15 @@ export function FileIntake({
                   Download all
                 </Button>
               ) : null}
-              <IconButton
+              <Button
                 className="workbench__clear"
-                icon={<MaterialSymbol name="delete_sweep" size={20} />}
-                label="Clear all files"
                 onClick={clearItems}
                 size="small"
-              />
+                variant="ghost"
+              >
+                <MaterialSymbol name="delete_sweep" size={20} />
+                Clear all
+              </Button>
             </div>
           </div>
 
@@ -994,20 +1009,61 @@ export function FileIntake({
           <ul aria-label="Selected files" className="workbench__list">
             {items.map((item, index) => {
               const imageAction = imageActions[item.id] ?? { status: "idle" };
+              const dimensionsChanged =
+                item.status === "ready" &&
+                imageAction.status === "completed" &&
+                (item.width !== imageAction.result.outputDimensions.width ||
+                  item.height !== imageAction.result.outputDimensions.height);
+              const openComparison = () => {
+                cancelComparisonHover();
+                setComparePosition(50);
+                setCompareItemId(item.id);
+              };
+              const previewComparison = () => {
+                cancelComparisonHover();
+                comparisonHoverTimer.current = window.setTimeout(() => {
+                  comparisonHoverTimer.current = null;
+                  setComparePosition(50);
+                  setCompareItemId(item.id);
+                }, 280);
+              };
               return (
                 <li
                   className={`work-item work-item--${item.status}`}
                   key={item.id}
                   style={{ animationDelay: `${Math.min(index, 8) * 30}ms` }}
                 >
-                  {item.status === "ready" ? (
+                  {item.status === "ready" && imageAction.status === "completed" ? (
+                    <button
+                      aria-label={`Compare original and optimized ${item.name}`}
+                      className="work-item__media work-item__media--compare motion-safe-transition"
+                      onClick={openComparison}
+                      onPointerEnter={(event) => {
+                        if (event.pointerType === "mouse") previewComparison();
+                      }}
+                      onPointerLeave={cancelComparisonHover}
+                      type="button"
+                    >
+                      <Image
+                        alt=""
+                        height={72}
+                        src={item.previewUrl}
+                        unoptimized
+                        width={72}
+                      />
+                      <span aria-hidden="true" className="work-item__compare-overlay">
+                        <MaterialSymbol name="compare" size={20} />
+                        <span>Compare</span>
+                      </span>
+                    </button>
+                  ) : item.status === "ready" ? (
                     <span aria-hidden="true" className="work-item__media">
                       <Image
                         alt=""
-                        height={56}
+                        height={72}
                         src={item.previewUrl}
                         unoptimized
-                        width={56}
+                        width={72}
                       />
                     </span>
                   ) : (
@@ -1023,18 +1079,6 @@ export function FileIntake({
                       <strong className="work-item__name" title={item.name}>
                         {item.name}
                       </strong>
-                      {imageAction.status === "completed" ? (
-                        <span
-                          className={classNames(
-                            "work-item__badge",
-                            imageAction.result.savedBytes >= 0
-                              ? "work-item__badge--success"
-                              : "work-item__badge--warning",
-                          )}
-                        >
-                          {describeSavings(imageAction.result)}
-                        </span>
-                      ) : null}
                     </div>
                     {item.status === "ready" ? (
                       <>
@@ -1063,9 +1107,52 @@ export function FileIntake({
                         ) : null}
                         {imageAction.status === "completed" ? (
                           <>
-                            <p className="work-item__result tabular-nums">
-                              {`${formatBytes(imageAction.result.outputBytes)} · ${imageAction.result.outputDimensions.width} × ${imageAction.result.outputDimensions.height} px · ${metadataLabel(imageAction.result.metadata)}`}
-                            </p>
+                            <div className="work-item__size-summary tabular-nums">
+                              <span className="work-item__size-block">
+                                <small>Before</small>
+                                <strong>{formatBytes(item.size)}</strong>
+                              </span>
+                              <MaterialSymbol
+                                className="work-item__size-arrow"
+                                name="arrow_forward"
+                                size={20}
+                              />
+                              <span className="work-item__size-block work-item__size-block--after">
+                                <small>After</small>
+                                <strong>
+                                  {formatBytes(imageAction.result.outputBytes)}
+                                </strong>
+                              </span>
+                              <span
+                                className={classNames(
+                                  "work-item__saving",
+                                  imageAction.result.savedBytes >= 0
+                                    ? "work-item__saving--success"
+                                    : "work-item__saving--warning",
+                                )}
+                              >
+                                <MaterialSymbol
+                                  name={
+                                    imageAction.result.savedBytes >= 0
+                                      ? "south_east"
+                                      : "north_east"
+                                  }
+                                  size={20}
+                                />
+                                {describeSavings(imageAction.result)}
+                              </span>
+                            </div>
+                            <div className="work-item__details tabular-nums">
+                              <span>{formatName(imageAction.result.outputFormat)}</span>
+                              <span>{`${imageAction.result.outputDimensions.width} × ${imageAction.result.outputDimensions.height} px`}</span>
+                              {dimensionsChanged ? (
+                                <span className="work-item__detail--resized">
+                                  <MaterialSymbol name="aspect_ratio" size={20} />
+                                  Resized from {item.width} × {item.height}
+                                </span>
+                              ) : null}
+                              <span>{metadataLabel(imageAction.result.metadata)}</span>
+                            </div>
                             {compressionMode === "target-size" && targetBytes ? (
                               <p className="work-item__success" role="status">
                                 <MaterialSymbol name="check_circle" size={20} filled />
@@ -1111,23 +1198,14 @@ export function FileIntake({
                           Cancel
                         </Button>
                       ) : imageAction.status === "completed" ? (
-                        <>
-                          <Button
-                            onClick={() => setCompareItemId(item.id)}
-                            size="small"
-                            variant="ghost"
-                          >
-                            Compare
-                          </Button>
-                          <a
-                            className="work-item__download motion-safe-transition"
-                            download={imageAction.result.outputName}
-                            href={imageAction.downloadUrl}
-                          >
-                            <MaterialSymbol name="download" size={20} />
-                            {`Download ${formatName(imageAction.result.outputFormat)}`}
-                          </a>
-                        </>
+                        <a
+                          className="work-item__download motion-safe-transition"
+                          download={imageAction.result.outputName}
+                          href={imageAction.downloadUrl}
+                        >
+                          <MaterialSymbol name="download" size={20} />
+                          {`Download ${formatName(imageAction.result.outputFormat)}`}
+                        </a>
                       ) : (
                         <Button
                           disabled={actionsDisabled}
@@ -1158,11 +1236,11 @@ export function FileIntake({
 
       <Dialog
         className="file-compare"
-        description="Inspect the original and optimized image without creating another full-resolution copy."
         onOpenChange={(open) => {
           if (!open) setCompareItemId(null);
         }}
         open={Boolean(comparison)}
+        showTitle={false}
         title={comparison ? `Compare ${comparison.item.name}` : "Compare images"}
         footer={
           comparison ? (
@@ -1178,41 +1256,125 @@ export function FileIntake({
         }
       >
         {comparison ? (
-          <div className="file-compare__grid">
-            <figure>
-              <div className="file-compare__image">
-                <Image
-                  alt={`Original ${comparison.item.name}`}
-                  height={comparison.item.height}
-                  src={comparison.item.previewUrl}
-                  unoptimized
-                  width={comparison.item.width}
-                />
-              </div>
-              <figcaption>
-                <strong>Original</strong>
-                <span>{formatName(comparison.item.format)}</span>
-                <span>{formatBytes(comparison.item.size)}</span>
-                <span>{`${comparison.item.width} × ${comparison.item.height} px`}</span>
-              </figcaption>
-            </figure>
-            <figure>
-              <div className="file-compare__image">
+          <div className="file-compare__content">
+            <div className="file-compare__viewer">
+              <div className="file-compare__layer file-compare__layer--optimized">
                 <Image
                   alt={`Optimized ${comparison.action.result.outputName}`}
-                  height={comparison.action.result.outputDimensions.height}
+                  fill
+                  sizes="(max-width: 720px) 100vw, 880px"
                   src={comparison.action.downloadUrl}
                   unoptimized
-                  width={comparison.action.result.outputDimensions.width}
                 />
               </div>
-              <figcaption>
-                <strong>Optimized</strong>
-                <span>{formatName(comparison.action.result.outputFormat)}</span>
-                <span>{formatBytes(comparison.action.result.outputBytes)}</span>
-                <span>{`${comparison.action.result.outputDimensions.width} × ${comparison.action.result.outputDimensions.height} px`}</span>
-              </figcaption>
-            </figure>
+              <div
+                className="file-compare__layer file-compare__layer--original"
+                style={{ clipPath: `inset(0 ${100 - comparePosition}% 0 0)` }}
+              >
+                <Image
+                  alt={`Original ${comparison.item.name}`}
+                  fill
+                  sizes="(max-width: 720px) 100vw, 880px"
+                  src={comparison.item.previewUrl}
+                  unoptimized
+                />
+              </div>
+              <span className="file-compare__label file-compare__label--original">
+                Original
+              </span>
+              <span className="file-compare__label file-compare__label--optimized">
+                Optimized
+              </span>
+              <div
+                aria-hidden="true"
+                className="file-compare__divider"
+                style={{ left: `${comparePosition}%` }}
+              >
+                <span className="file-compare__handle">
+                  <MaterialSymbol name="drag_indicator" size={20} />
+                </span>
+              </div>
+              <input
+                aria-label="Reveal original image"
+                aria-valuetext={`${comparePosition}% original image visible`}
+                className="file-compare__range"
+                max={100}
+                min={0}
+                onChange={(event) =>
+                  setComparePosition(Number(event.currentTarget.value))
+                }
+                type="range"
+                value={comparePosition}
+              />
+            </div>
+
+            <div className="file-compare__facts">
+              <section className="file-compare__fact">
+                <div className="file-compare__fact-heading">
+                  <strong>Original</strong>
+                  <span>{formatName(comparison.item.format)}</span>
+                </div>
+                <div className="file-compare__size">
+                  <small>Before</small>
+                  <strong>{formatBytes(comparison.item.size)}</strong>
+                </div>
+                <dl className="file-compare__details">
+                  <div>
+                    <dt>Dimensions</dt>
+                    <dd>{`${comparison.item.width} × ${comparison.item.height} px`}</dd>
+                  </div>
+                </dl>
+              </section>
+              <section className="file-compare__fact file-compare__fact--optimized">
+                <div className="file-compare__fact-heading">
+                  <strong>Optimized</strong>
+                  <span>{formatName(comparison.action.result.outputFormat)}</span>
+                </div>
+                <div className="file-compare__optimized-summary">
+                  <div className="file-compare__size">
+                    <small>After</small>
+                    <strong>{formatBytes(comparison.action.result.outputBytes)}</strong>
+                  </div>
+                  <span
+                    className={classNames(
+                      "file-compare__saving",
+                      comparison.action.result.savedBytes >= 0
+                        ? "file-compare__saving--success"
+                        : "file-compare__saving--warning",
+                    )}
+                  >
+                    <MaterialSymbol
+                      name={
+                        comparison.action.result.savedBytes >= 0
+                          ? "south_east"
+                          : "north_east"
+                      }
+                      size={20}
+                    />
+                    {describeSavings(comparison.action.result)}
+                  </span>
+                </div>
+                <dl className="file-compare__details">
+                  <div>
+                    <dt>Dimensions</dt>
+                    <dd>{`${comparison.action.result.outputDimensions.width} × ${comparison.action.result.outputDimensions.height} px`}</dd>
+                  </div>
+                  <div>
+                    <dt>Metadata</dt>
+                    <dd>{metadataLabel(comparison.action.result.metadata)}</dd>
+                  </div>
+                </dl>
+                {comparison.item.width !==
+                  comparison.action.result.outputDimensions.width ||
+                comparison.item.height !==
+                  comparison.action.result.outputDimensions.height ? (
+                  <p className="file-compare__resize-note">
+                    <MaterialSymbol name="aspect_ratio" size={20} />
+                    Resized from {comparison.item.width} × {comparison.item.height} px
+                  </p>
+                ) : null}
+              </section>
+            </div>
           </div>
         ) : null}
       </Dialog>

@@ -629,9 +629,11 @@
 }
 
 .ui-dialog__surface {
+  display: flex;
   width: min(100%, 560px);
   max-height: min(82dvh, 720px);
-  overflow: auto;
+  flex-direction: column;
+  overflow: hidden;
   border: 1px solid var(--brand-hairline);
   border-radius: var(--radius-lg);
   background: var(--brand-surface-1);
@@ -645,6 +647,18 @@
   justify-content: space-between;
   gap: var(--spacing-lg);
   padding: var(--spacing-lg);
+}
+
+.ui-dialog__header--compact {
+  z-index: 8;
+  justify-content: flex-end;
+  padding: var(--spacing-sm) var(--spacing-sm) 0;
+}
+
+.ui-dialog__header--compact .ui-icon-button {
+  border-color: var(--brand-hairline);
+  background: var(--brand-surface-1);
+  box-shadow: 0 8px 24px rgb(60 49 91 / 0.14);
 }
 
 .ui-dialog__header h2,
@@ -665,6 +679,12 @@
 .ui-dialog__body,
 .ui-sheet__body {
   padding: 0 var(--spacing-lg) var(--spacing-lg);
+}
+
+.ui-dialog__body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
 }
 
 .ui-dialog__footer,
@@ -791,6 +811,13 @@
     width: 100%;
     max-height: 86dvh;
     border-radius: var(--radius-md);
+  }
+
+  .ui-dialog__header--compact {
+    position: fixed;
+    top: var(--spacing-base);
+    right: var(--spacing-base);
+    padding: 0;
   }
 
   .ui-dialog__footer,

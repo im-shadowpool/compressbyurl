@@ -36,8 +36,10 @@ export interface IntakeSample {
 }
 
 export interface InitialCompressionSettings {
+  compressionMode?: CompressionMode;
   compressionPreset: CompressionPresetId;
   outputFormat: OutputFormat;
+  quality?: number;
 }
 
 export interface CompressionSettingsController {
@@ -181,9 +183,10 @@ function withInitialSettings(
       ...preferences,
       activePreset: "custom",
       allowDimensionReduction: false,
-      compressionMode: DEFAULT_FILE_TOOL_PREFERENCES.compressionMode,
+      compressionMode:
+        initialSettings.compressionMode ?? DEFAULT_FILE_TOOL_PREFERENCES.compressionMode,
       outputFormat: initialSettings.outputFormat,
-      quality: DEFAULT_FILE_TOOL_PREFERENCES.quality,
+      quality: initialSettings.quality ?? DEFAULT_FILE_TOOL_PREFERENCES.quality,
       resizeEnabled: false,
       targetPreset: DEFAULT_FILE_TOOL_PREFERENCES.targetPreset,
     };

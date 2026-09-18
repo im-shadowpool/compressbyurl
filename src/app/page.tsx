@@ -3,10 +3,12 @@ import Link from "next/link";
 
 import { MaterialSymbol } from "@/components/icons";
 import { Container } from "@/components/layout";
+import { MediaFrame } from "@/components/media";
 import { HomeStructuredData } from "@/components/seo/home-structured-data";
 import { SiteFooter, SiteHeader } from "@/components/shell";
 import { createSeoMetadata } from "@/config/seo-routes";
 import { ToolModeSwitcher } from "@/features/tool-shell";
+import { media } from "@/lib/media";
 
 export const metadata: Metadata = createSeoMetadata("/");
 
@@ -18,13 +20,19 @@ export default function HomePage() {
         <section className="home-hero" aria-labelledby="page-title">
           <Container size="bleed">
             <div className="home-hero__frame">
-              <div className="home-hero__copy motion-safe-enter">
-                <p className="home-hero__eyebrow">
-                  <MaterialSymbol name="bolt" size={20} />
-                  Private image compression
-                </p>
-                <h1 id="page-title">Compress images from files or URLs.</h1>
-                <p>Make images smaller, convert formats and fix heavy webpage assets.</p>
+              <div className="home-hero__top">
+                <div className="home-hero__copy motion-safe-enter">
+                  <h1 id="page-title">Compress images from files or URLs.</h1>
+                  <p>
+                    Make images smaller, convert formats and fix heavy webpage assets.
+                  </p>
+                </div>
+                <MediaFrame
+                  asset={media.hero.optimizer}
+                  className="home-hero__media motion-safe-enter"
+                  priority
+                  sizes="(max-width: 768px) 92vw, 44vw"
+                />
               </div>
               <div
                 className="home-hero__tool motion-safe-enter"
@@ -53,31 +61,52 @@ export default function HomePage() {
             </div>
             <div className="home-capabilities__modes">
               <article>
-                <MaterialSymbol name="upload_file" size={24} />
-                <h3>Upload files</h3>
-                <p>
-                  Compress batches of JPEG, PNG, WebP and static AVIF images without
-                  sending local file bytes to the server.
-                </p>
-                <Link href="/compress-image">Open the compressor</Link>
+                <MediaFrame
+                  asset={media.features.batch}
+                  className="home-capabilities__media"
+                  sizes="(max-width: 768px) 38vw, 18vw"
+                />
+                <div>
+                  <MaterialSymbol name="upload_file" size={24} />
+                  <h3>Upload files</h3>
+                  <p>
+                    Compress batches of JPEG, PNG, WebP and static AVIF images without
+                    sending local file bytes to the server.
+                  </p>
+                  <Link href="/compress-image">Open the compressor</Link>
+                </div>
               </article>
               <article>
-                <MaterialSymbol name="link" size={24} />
-                <h3>Use an image URL</h3>
-                <p>
-                  Import one public image, then apply the same local quality, format,
-                  resize, naming and target-size controls.
-                </p>
-                <Link href="/compress-image-from-url">Open the URL tool</Link>
+                <MediaFrame
+                  asset={media.features.delivery}
+                  className="home-capabilities__media"
+                  sizes="(max-width: 768px) 38vw, 18vw"
+                />
+                <div>
+                  <MaterialSymbol name="link" size={24} />
+                  <h3>Use an image URL</h3>
+                  <p>
+                    Import one public image, then apply the same local quality, format,
+                    resize, naming and target-size controls.
+                  </p>
+                  <Link href="/compress-image-from-url">Open the URL tool</Link>
+                </div>
               </article>
               <article>
-                <MaterialSymbol name="travel_explore" size={24} />
-                <h3>Scan a webpage</h3>
-                <p>
-                  Find discoverable image candidates on one public page, select the useful
-                  ones and create a local replacement bundle.
-                </p>
-                <Link href="/website-image-scanner">Open the scanner</Link>
+                <MediaFrame
+                  asset={media.features.website}
+                  className="home-capabilities__media"
+                  sizes="(max-width: 768px) 62vw, 22vw"
+                />
+                <div>
+                  <MaterialSymbol name="travel_explore" size={24} />
+                  <h3>Scan a webpage</h3>
+                  <p>
+                    Find discoverable image candidates on one public page, select the
+                    useful ones and create a local replacement bundle.
+                  </p>
+                  <Link href="/website-image-scanner">Open the scanner</Link>
+                </div>
               </article>
             </div>
           </Container>

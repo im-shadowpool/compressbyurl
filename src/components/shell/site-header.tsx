@@ -7,6 +7,8 @@ import { MaterialSymbol } from "@/components/icons";
 import { Container } from "@/components/layout";
 import { IconButton } from "@/components/ui";
 
+import { BrandLogo } from "./brand-logo";
+
 const navigation = [
   { label: "Compress", href: "/compress-image" },
   { label: "Convert", href: "/image-converter" },
@@ -35,7 +37,7 @@ export function SiteHeader() {
       <Container>
         <div className="site-header__row">
           <Link className="site-wordmark" href="/" aria-label="CompressByURL home">
-            CompressByURL
+            <BrandLogo priority />
           </Link>
           <nav className="site-nav site-nav--desktop" aria-label="Primary navigation">
             {navigation.map((item) => (
