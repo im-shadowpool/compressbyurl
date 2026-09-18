@@ -8,6 +8,7 @@
 @import "../styles/home-seo.css";
 @import "../styles/tool-pages.css";
 @import "../styles/editorial-pages.css";
+@import "../styles/legal-pages.css";
 
 *,
 *::before,
@@ -141,33 +142,8 @@ textarea:focus-visible,
   font-size: var(--type-body-sm-size);
 }
 
-.action-button {
-  display: inline-flex;
-  min-height: 52px;
-  align-items: center;
-  justify-content: center;
+.foundation-card > .ui-button {
   margin-top: var(--spacing-xl);
-  padding-inline: var(--spacing-xl);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--brand-primary);
-  color: var(--brand-ink);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 400;
-  text-decoration: none;
-  transition:
-    box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
-    transform var(--motion-duration-fast) var(--motion-ease-standard);
-}
-
-.action-button:hover {
-  box-shadow: 0 8px 30px rgb(171 159 242 / 0.32);
-  transform: translateY(-1px);
-}
-
-.action-button:active {
-  transform: translateY(1px);
 }
 
 .foundation-card-loading {

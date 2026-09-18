@@ -3,8 +3,10 @@
 import { useState, type FormEvent } from "react";
 
 import { MaterialSymbol } from "@/components/icons";
+import { MediaFrame } from "@/components/media";
 import { Button, Input } from "@/components/ui";
 import { FileIntake } from "@/features/file-intake";
+import { media } from "@/lib/media";
 
 import {
   fetchImageUrl,
@@ -60,9 +62,11 @@ export function ImageUrlIntake() {
   return (
     <div className="mode-panel">
       <header className="mode-panel__intro">
-        <span aria-hidden="true" className="mode-panel__icon">
-          <MaterialSymbol name="add_link" size={24} />
-        </span>
+        <MediaFrame
+          asset={media.hero.compressionFlow}
+          className="mode-panel__art"
+          sizes="(max-width: 640px) 96px, 120px"
+        />
         <div>
           <h2>Paste an image URL</h2>
           <p>Fetch one public image, then compress and download it locally.</p>

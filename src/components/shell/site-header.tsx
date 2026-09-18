@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { MaterialSymbol } from "@/components/icons";
 import { Container } from "@/components/layout";
-import { IconButton } from "@/components/ui";
+import { ButtonLink, IconButton } from "@/components/ui";
 
 import { BrandLogo } from "./brand-logo";
 
@@ -42,13 +42,13 @@ export function SiteHeader() {
           <nav className="site-nav site-nav--desktop" aria-label="Primary navigation">
             {navigation.map((item) => (
               <Link href={item.href} key={item.label}>
-                {item.label}
+                <span className="nav-link__label">{item.label}</span>
               </Link>
             ))}
           </nav>
-          <Link className="site-header__action" href="/compress-image">
+          <ButtonLink className="site-header__action" href="/compress-image" size="small">
             Start compressing
-          </Link>
+          </ButtonLink>
           <div className="site-header__menu-button">
             <IconButton
               aria-controls="mobile-navigation"
@@ -68,7 +68,7 @@ export function SiteHeader() {
             <p className="site-nav__mobile-label">Explore CompressByURL</p>
             {navigation.map((item) => (
               <Link href={item.href} key={item.label} onClick={() => setOpen(false)}>
-                {item.label}
+                <span className="nav-link__label">{item.label}</span>
                 <MaterialSymbol name="arrow_forward" size={20} />
               </Link>
             ))}

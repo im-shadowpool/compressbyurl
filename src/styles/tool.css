@@ -308,9 +308,18 @@
 }
 
 .tool-stage {
+  --tool-mode-stage-min-height: clamp(29rem, 42vw, 39rem);
+
   min-width: 0;
   padding: var(--spacing-base) var(--tool-padding);
   animation: tool-stage-in var(--motion-duration-enter) var(--motion-ease-standard) both;
+}
+
+.tool-stage__panel,
+.tool-stage__panel > .file-intake,
+.tool-stage__panel > .mode-panel,
+.tool-stage__panel .file-dropzone {
+  min-height: var(--tool-mode-stage-min-height);
 }
 
 .tool-stage__panel[hidden] {
@@ -347,6 +356,7 @@
 
 .mode-panel {
   display: grid;
+  align-content: center;
   gap: clamp(1.5rem, 3vw, 2.25rem);
   padding: var(--spacing-base) 0;
 }
@@ -360,14 +370,8 @@
   text-align: center;
 }
 
-.mode-panel__icon {
-  display: grid;
-  width: 52px;
-  height: 52px;
-  place-items: center;
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--brand-primary) 18%, var(--brand-surface-1));
-  color: var(--brand-ink);
+.mode-panel__art {
+  width: clamp(88px, 14vw, 120px);
 }
 
 .mode-panel__intro h2 {
@@ -446,6 +450,7 @@
 
 .file-dropzone {
   display: grid;
+  align-content: center;
   justify-items: center;
   padding: clamp(2.25rem, 5.5vw, 4.5rem) var(--spacing-lg);
   border: 1.5px dashed color-mix(in srgb, var(--brand-ink) 22%, transparent);
@@ -918,7 +923,6 @@
   height: 13px;
 }
 
-
 .work-item__success {
   display: inline-flex;
   align-items: center;
@@ -987,25 +991,6 @@
   justify-content: flex-end;
   gap: var(--spacing-xs);
   flex-shrink: 0;
-}
-
-.work-item__download {
-  display: inline-grid;
-  width: 44px;
-  height: 44px;
-  place-items: center;
-  border-radius: var(--radius-full);
-  background: var(--brand-ink);
-  color: var(--brand-surface-1);
-  text-decoration: none;
-  flex-shrink: 0;
-  transition: transform var(--motion-duration-base) var(--motion-ease-standard),
-              background var(--motion-duration-base) var(--motion-ease-standard);
-}
-
-.work-item__download:hover {
-  background: color-mix(in srgb, var(--brand-ink) 88%, white);
-  transform: scale(1.06);
 }
 
 /* ------------------------------------------------------------------ */
@@ -1849,12 +1834,6 @@
     justify-content: flex-end;
   }
 
-  .work-item__download {
-    flex: 0 0 auto;
-    width: 44px;
-    height: 44px;
-  }
-
   .work-item__metrics {
     justify-content: flex-start;
     flex-wrap: wrap;
@@ -1866,7 +1845,6 @@
     flex-wrap: wrap;
     gap: 3px 6px;
   }
-
 
   .file-compare__viewer {
     height: min(76vh, 520px);

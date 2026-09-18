@@ -1,6 +1,5 @@
-import Link from "next/link";
-
 import { Container } from "@/components/layout";
+import { ButtonLink } from "@/components/ui";
 
 export default function NotFound() {
   return (
@@ -14,9 +13,7 @@ export default function NotFound() {
           <p className="foundation-intro">
             Head back to the starting point and keep making things lighter.
           </p>
-          <Link className="action-button" href="/">
-            Back home
-          </Link>
+          <ButtonLink href="/">Back home</ButtonLink>
         </section>
       </Container>
     </main>

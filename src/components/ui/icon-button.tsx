@@ -9,7 +9,7 @@ export interface IconButtonProps extends Omit<
   label: string;
   icon: ReactNode;
   size?: "small" | "medium";
-  variant?: "standard" | "filled";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "inverse";
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
@@ -20,7 +20,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       label,
       size = "medium",
       type = "button",
-      variant = "standard",
+      variant = "secondary",
       ...props
     },
     ref,

@@ -60,10 +60,10 @@ export const media = {
   features: {
     batch: {
       kind: "image",
-      src: "/media/image-asset%20(19).webp",
+      src: "/media/image-asset%20(17).webp",
       width: 1400,
-      height: 1050,
-      alt: "Mascot carrying a batch of image files",
+      height: 933,
+      alt: "Mascot uploading a collection of image files",
     },
     compression: {
       kind: "image",
@@ -81,19 +81,19 @@ export const media = {
     },
     website: {
       kind: "image",
-      src: "/media/image-asset%20(2).webp",
+      src: "/media/image-asset%20(9).webp",
       width: 1400,
-      height: 1050,
-      alt: "Mascot inspecting and extracting images from a website URL",
+      height: 1400,
+      alt: "Mascot reviewing a website image before optimization",
     },
   },
   footer: {
     workflow: {
       kind: "image",
-      src: "/media/image-asset%20(1).webp",
+      src: "/media/image-01.png",
       width: 1400,
       height: 467,
-      alt: "Mascot guiding images through a fast browser workflow",
+      alt: "Mascot organizing image cards for optimization",
     },
   },
 } as const satisfies Record<string, Record<string, MediaAsset>>;

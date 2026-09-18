@@ -1,6 +1,7 @@
 "use client";
 
 import { Container } from "@/components/layout";
+import { Button } from "@/components/ui";
 
 export default function GlobalError({
   reset,
@@ -23,9 +24,7 @@ export default function GlobalError({
                 A fresh start should fix this.
               </h1>
               <p className="foundation-intro">The app hit an unexpected problem.</p>
-              <button className="action-button" type="button" onClick={() => reset()}>
-                Reload workspace
-              </button>
+              <Button onClick={() => reset()}>Reload workspace</Button>
             </section>
           </Container>
         </main>

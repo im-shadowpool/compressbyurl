@@ -15,7 +15,7 @@ import {
 
 import { MaterialSymbol } from "@/components/icons";
 import { MediaFrame } from "@/components/media";
-import { Button, Dialog, IconButton } from "@/components/ui";
+import { Button, ButtonAnchor, Dialog, IconButton } from "@/components/ui";
 import {
   createDefaultCompressionSettings,
   createImageZip,
@@ -937,18 +937,19 @@ export function FileIntake({
                 </Button>
               ) : null}
               {!batchRunning && canArchive && zipState.status === "ready" ? (
-                <a
-                  className="work-item__download workbench__zip motion-safe-transition"
+                <ButtonAnchor
+                  className="workbench__zip"
                   download={
                     replacementSources
                       ? "website-replacements.zip"
                       : "compressed-images.zip"
                   }
                   href={zipState.downloadUrl}
+                  leadingIcon={<MaterialSymbol name="folder_zip" size={20} />}
+                  size="small"
                 >
-                  <MaterialSymbol name="folder_zip" size={20} />
                   {`Download ZIP · ${formatBytes(zipState.size)}`}
-                </a>
+                </ButtonAnchor>
               ) : null}
               {!batchRunning && canArchive && zipState.status !== "ready" ? (
                 <Button
@@ -1027,9 +1028,7 @@ export function FileIntake({
               const imageAction = imageActions[item.id] ?? { status: "idle" };
               const isReady = item.status === "ready";
               const completedResult =
-                isReady && imageAction.status === "completed"
-                  ? imageAction.result
-                  : null;
+                isReady && imageAction.status === "completed" ? imageAction.result : null;
               const delta =
                 isReady && completedResult
                   ? formatByteDelta(item.size, completedResult.outputBytes)
@@ -1175,11 +1174,15 @@ export function FileIntake({
                           <span className="work-item__format-pill">
                             {formatName(completedResult.outputFormat)}
                           </span>
-                          <span className="work-item__specs-sep" aria-hidden="true">·</span>
+                          <span className="work-item__specs-sep" aria-hidden="true">
+                            ·
+                          </span>
                           <span>{`${completedResult.outputDimensions.width} × ${completedResult.outputDimensions.height} px`}</span>
                           {dimensionsChanged ? (
                             <>
-                              <span className="work-item__specs-sep" aria-hidden="true">·</span>
+                              <span className="work-item__specs-sep" aria-hidden="true">
+                                ·
+                              </span>
                               <span
                                 className="work-item__detail--resized"
                                 title={`Resized from ${item.width} × ${item.height} px`}
@@ -1189,7 +1192,9 @@ export function FileIntake({
                               </span>
                             </>
                           ) : null}
-                          <span className="work-item__specs-sep" aria-hidden="true">·</span>
+                          <span className="work-item__specs-sep" aria-hidden="true">
+                            ·
+                          </span>
                           <span className="work-item__specs-meta">
                             {metadataLabel(completedResult.metadata)}
                           </span>
@@ -1227,15 +1232,16 @@ export function FileIntake({
                           Cancel
                         </Button>
                       ) : imageAction.status === "completed" ? (
-                        <a
+                        <ButtonAnchor
                           aria-label={`Download ${formatName(imageAction.result.outputFormat)}`}
-                          className="work-item__download motion-safe-transition"
                           download={imageAction.result.outputName}
                           href={imageAction.downloadUrl}
+                          iconOnly
+                          size="small"
                           title={`Download ${formatName(imageAction.result.outputFormat)}`}
                         >
                           <MaterialSymbol name="download" size={20} />
-                        </a>
+                        </ButtonAnchor>
                       ) : (
                         <Button
                           disabled={actionsDisabled}
@@ -1255,6 +1261,7 @@ export function FileIntake({
                       label={`Remove ${item.name}`}
                       onClick={() => removeItem(item.id)}
                       size="small"
+                      variant="ghost"
                     />
                   </span>
                 </li>
@@ -1273,75 +1280,77 @@ export function FileIntake({
         showTitle={false}
         title={comparison ? `Compare ${comparison.item.name}` : "Compare images"}
       >
-        {comparison ? (() => {
-          const naturalWidth =
-            comparison.action.result.outputDimensions.width ||
-            comparison.item.width ||
-            1;
-          const naturalHeight =
-            comparison.action.result.outputDimensions.height ||
-            comparison.item.height ||
-            1;
-          const imageRatio = Number((naturalWidth / naturalHeight).toFixed(4));
-          return (
-            <div
-              className="file-compare__viewer"
-              style={{
-                aspectRatio: `${naturalWidth} / ${naturalHeight}`,
-                width: `min(92vw, 1120px, calc((82vh - 56px) * ${imageRatio}))`,
-              }}
-            >
-              <div className="file-compare__layer file-compare__layer--optimized">
-                <Image
-                  alt={`Optimized ${comparison.action.result.outputName}`}
-                  fill
-                  sizes="(max-width: 1200px) 94vw, 1120px"
-                  src={comparison.action.downloadUrl}
-                  unoptimized
-                />
-              </div>
-              <div
-                className="file-compare__layer file-compare__layer--original"
-                style={{ clipPath: `inset(0 ${100 - comparePosition}% 0 0)` }}
-              >
-                <Image
-                  alt={`Original ${comparison.item.name}`}
-                  fill
-                  sizes="(max-width: 1200px) 94vw, 1120px"
-                  src={comparison.item.previewUrl}
-                  unoptimized
-                />
-              </div>
-              <span className="file-compare__label file-compare__label--original">
-                Original
-              </span>
-              <span className="file-compare__label file-compare__label--optimized">
-                Optimized
-              </span>
-              <div
-                aria-hidden="true"
-                className="file-compare__divider"
-                style={{ left: `${comparePosition}%` }}
-              >
-                <span className="file-compare__handle">
-                  <MaterialSymbol name="drag_indicator" size={20} />
-                </span>
-              </div>
-              <input
-                aria-label="Reveal original image"
-                aria-valuetext={`${comparePosition}% original image visible`}
-                className="file-compare__range"
-                max={100}
-                min={0}
-                onChange={(event) =>
-                  setComparePosition(Number(event.currentTarget.value))
-                }
-                type="range"
-                value={comparePosition}
-              />
-            </div>
-          );
-        })() : null}
+        {comparison
+          ? (() => {
+              const naturalWidth =
+                comparison.action.result.outputDimensions.width ||
+                comparison.item.width ||
+                1;
+              const naturalHeight =
+                comparison.action.result.outputDimensions.height ||
+                comparison.item.height ||
+                1;
+              const imageRatio = Number((naturalWidth / naturalHeight).toFixed(4));
+              return (
+                <div
+                  className="file-compare__viewer"
+                  style={{
+                    aspectRatio: `${naturalWidth} / ${naturalHeight}`,
+                    width: `min(92vw, 1120px, calc((82vh - 56px) * ${imageRatio}))`,
+                  }}
+                >
+                  <div className="file-compare__layer file-compare__layer--optimized">
+                    <Image
+                      alt={`Optimized ${comparison.action.result.outputName}`}
+                      fill
+                      sizes="(max-width: 1200px) 94vw, 1120px"
+                      src={comparison.action.downloadUrl}
+                      unoptimized
+                    />
+                  </div>
+                  <div
+                    className="file-compare__layer file-compare__layer--original"
+                    style={{ clipPath: `inset(0 ${100 - comparePosition}% 0 0)` }}
+                  >
+                    <Image
+                      alt={`Original ${comparison.item.name}`}
+                      fill
+                      sizes="(max-width: 1200px) 94vw, 1120px"
+                      src={comparison.item.previewUrl}
+                      unoptimized
+                    />
+                  </div>
+                  <span className="file-compare__label file-compare__label--original">
+                    Original
+                  </span>
+                  <span className="file-compare__label file-compare__label--optimized">
+                    Optimized
+                  </span>
+                  <div
+                    aria-hidden="true"
+                    className="file-compare__divider"
+                    style={{ left: `${comparePosition}%` }}
+                  >
+                    <span className="file-compare__handle">
+                      <MaterialSymbol name="drag_indicator" size={20} />
+                    </span>
+                  </div>
+                  <input
+                    aria-label="Reveal original image"
+                    aria-valuetext={`${comparePosition}% original image visible`}
+                    className="file-compare__range"
+                    max={100}
+                    min={0}
+                    onChange={(event) =>
+                      setComparePosition(Number(event.currentTarget.value))
+                    }
+                    type="range"
+                    value={comparePosition}
+                  />
+                </div>
+              );
+            })()
+          : null}
       </Dialog>
     </section>
   );

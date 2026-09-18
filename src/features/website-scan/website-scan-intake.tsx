@@ -4,10 +4,12 @@ import Image from "next/image";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { MaterialSymbol } from "@/components/icons";
+import { MediaFrame } from "@/components/media";
 import { Button, Input } from "@/components/ui";
 import { FileIntake, formatBytes } from "@/features/file-intake";
 import { fetchImageUrl } from "@/features/image-url";
 import { useOnlineStatus } from "@/features/pwa";
+import { media } from "@/lib/media";
 
 import {
   websiteScanManifestSchema,
@@ -401,9 +403,11 @@ export function WebsiteScanIntake({
   return (
     <div className="mode-panel website-scan">
       <header className="mode-panel__intro">
-        <span aria-hidden="true" className="mode-panel__icon">
-          <MaterialSymbol name="search_insights" size={24} />
-        </span>
+        <MediaFrame
+          asset={media.hero.compressionFlow}
+          className="mode-panel__art"
+          sizes="(max-width: 640px) 96px, 120px"
+        />
         <div>
           <h2>{copy.heading}</h2>
           <p>{copy.description}</p>

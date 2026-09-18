@@ -47,8 +47,13 @@
 
 .home-capabilities__media {
   width: min(100%, 15rem);
+  aspect-ratio: 1 / 1 !important;
   margin-inline: auto;
   border-radius: var(--radius-md);
+}
+
+.home-capabilities__media .media-frame__fallback {
+  object-fit: cover;
 }
 
 .home-capabilities__modes article > div:last-child {

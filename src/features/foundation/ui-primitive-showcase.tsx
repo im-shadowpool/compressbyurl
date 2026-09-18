@@ -5,6 +5,7 @@ import { useState } from "react";
 import { MaterialSymbol } from "@/components/icons";
 import {
   Button,
+  ButtonLink,
   Card,
   Dialog,
   IconButton,
@@ -55,18 +56,37 @@ export function UiPrimitiveShowcase() {
       <section className="ui-showcase__section" aria-labelledby="actions-title">
         <div className="ui-showcase__heading">
           <h2 id="actions-title">Actions</h2>
-          <p>Primary, secondary, icon, loading and disabled states.</p>
+          <p>
+            Shared primary, secondary, ghost, destructive, link, loading and disabled
+            states.
+          </p>
         </div>
         <div className="ui-showcase__actions">
           <Button leadingIcon={<MaterialSymbol name="upload_file" size={20} />}>
             Choose images
           </Button>
           <Button variant="secondary">Advanced settings</Button>
+          <Button variant="ghost">Cancel</Button>
+          <Button variant="danger">Remove image</Button>
+          <ButtonLink
+            href="/compress-image"
+            trailingIcon={<MaterialSymbol name="arrow_forward" size={20} />}
+          >
+            Open compressor
+          </ButtonLink>
           <Button loading>Compressing</Button>
           <Button disabled variant="secondary">
             Download
           </Button>
           <IconButton icon={<MaterialSymbol name="tune" />} label="Tune settings" />
+        </div>
+        <div className="ui-showcase__actions ui-showcase__actions--inverse">
+          <Button variant="inverse">Inverse action</Button>
+          <IconButton
+            icon={<MaterialSymbol name="close" />}
+            label="Close dark surface"
+            variant="inverse"
+          />
         </div>
       </section>
 

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 import { Container } from "@/components/layout";
+import { Button } from "@/components/ui";
 
 export default function Error({
   error,
@@ -27,9 +28,7 @@ export default function Error({
             Try again. Your local files stay on your device while CompressByURL is
             running.
           </p>
-          <button className="action-button" type="button" onClick={() => reset()}>
-            Try again
-          </button>
+          <Button onClick={() => reset()}>Try again</Button>
         </section>
       </Container>
     </main>
