@@ -1,8 +1,8 @@
 # MCP Release Procedure
 
-Status: release candidate prepared; remote CI and registry publication remain open.
+Status: `compressbyurl-mcp@0.1.0` published and verified.
 
-Date checked: 2026-09-22
+Date checked: 2026-09-23
 
 ## Release targets
 
@@ -13,9 +13,9 @@ Date checked: 2026-09-22
 - Node.js: 22.19+, with CI on 22.19, 24, and 26
 - Platforms: Ubuntu Linux x64, Windows x64, and macOS arm64
 
-Registry checks confirmed that `compressbyurl-mcp` is still unclaimed. Current registry
-versions also still match the locked release dependencies: MCP server 2.0.0, Sharp
-0.35.4, Zod 4.6.5, Cheerio 1.2.0, Undici 8.10.2, and ipaddr.js 2.5.0.
+The public registry reports version `0.1.0` with `latest` pointing to it. Its `gitHead`
+is `799edc94adc084b7000831b291bbc7a952fe6bc2`, the same commit as the `v0.1.0`
+tag, and its tarball SHA-1 is `62a5bb649b14facdcd71c626a449b847fd2fa162`.
 
 ## Automated verification
 
@@ -31,7 +31,8 @@ install on this matrix:
 
 The macOS architecture follows the current
 [GitHub-hosted runner reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
-No release may be published until all nine jobs pass on the exact release commit.
+All nine jobs passed on the release PR and again on the merged release commit before
+publication.
 
 Local release rehearsal:
 
@@ -60,8 +61,7 @@ explicitly pinned npm 11.19.1, no npm token, an early exact release tag/version 
 and `npm publish`. This exceeds npm's 11.5.1 minimum and follows its current
 [trusted publishing guidance](https://docs.npmjs.com/trusted-publishers/).
 
-After the first package exists, a human npm owner must configure this trusted publisher
-in the package settings:
+The npm trusted publisher is configured for subsequent versions:
 
 | npm field         | Value                |
 | ----------------- | -------------------- |
@@ -72,35 +72,40 @@ in the package settings:
 | Environment       | `npm`                |
 | Allowed action    | direct `npm publish` |
 
-Create a protected GitHub environment named `npm` and require maintainer approval.
-After the OIDC release works, set npm publishing access to require 2FA and disallow
-traditional tokens.
+The GitHub `npm` environment exists and requires approval from `im-shadowpool`. The
+trusted relationship permits direct publishing from the named workflow and environment.
+After the first OIDC release succeeds, set npm publishing access to require 2FA and
+disallow traditional tokens.
 
-This machine is authenticated to npm as `shadowpool`. Keep that credential local: do
-not copy it into the repository, workflow files, logs, or pull-request text. The initial
-registry bootstrap must run only after the exact release commit passes the full CI matrix.
+The first version was published interactively by the `shadowpool` npm account with
+account 2FA enabled, after the full CI matrix passed. Keep that credential local; do
+not copy it into the repository or workflows.
 
 ## Provenance and repository visibility
 
-The GitHub repository is public. This satisfies npm's public-source requirement for
-automatic provenance when a public package is published through trusted GitHub Actions
-OIDC.
+The GitHub repository and npm package are public. Version `0.1.0` was bootstrapped
+interactively, so it has a registry signature but no GitHub provenance attestation.
+The npm version is immutable; do not attempt to republish `0.1.0`. A later version
+published through the configured trusted GitHub Actions workflow can receive automatic
+provenance.
 
-## First-publication sequence
+## Release record and next-version procedure
 
-1. Resolve repository visibility and review all tracked files for secrets/private data.
-2. Push the release workflows and require the full matrix on `main`.
-3. Verify MCP Inspector and two actual supported hosts from the release tarball.
-4. Log into npm with a maintainer account protected by 2FA.
-5. Reconfirm the package name and perform the minimum first-publication/bootstrap step
-   required by npm so the package settings exist.
-6. Configure the trusted publisher values above and remove/revoke any bootstrap token.
-7. Create tag `v0.1.0` from the verified commit and publish a GitHub release.
-8. Approve the protected `npm` environment; the OIDC workflow publishes the package.
-9. Verify `npm view compressbyurl-mcp@0.1.0`, install it in a fresh directory, and run
-   MCP Inspector plus the two real hosts again.
-10. If the repository is public, confirm the provenance badge and run
-    `npm audit signatures` from a clean install.
+1. Pull request [#1](https://github.com/im-shadowpool/compressbyurl/pull/1) was merged
+   by the owner. The release commit passed all nine matrix jobs.
+2. npm account 2FA was enabled and `compressbyurl-mcp@0.1.0` was published from that
+   exact commit. The release artifact contains 11 intended files.
+3. The `v0.1.0` tag and
+   [GitHub release](https://github.com/im-shadowpool/compressbyurl/releases/tag/v0.1.0)
+   point to the registry's `gitHead`. The release author is `im-shadowpool`.
+4. A fresh registry install imported the side-effect-free library entry, ran the policy
+   CLI, listed all five tools over stdio, and invoked `get_server_info`. `npm audit
+   signatures` verified the registry signatures for all 34 installed packages; the 10
+   attestations reported belong to dependencies, not this initial package version.
+5. For the next version, update package and changelog versions, run the full matrix on
+   the exact release commit, create its version tag and GitHub release, approve the
+   protected `npm` environment, then verify the OIDC publish, registry install, and
+   package provenance. Never reuse a published version number.
 
 ## Client release gate
 

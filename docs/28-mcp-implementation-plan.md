@@ -100,9 +100,9 @@ remain unnecessary unless Next.js bundling or deployment is affected.
 | 5     | Safe single-image optimization     | Complete                 |
 | 6     | Plans and batch application        | Complete                 |
 | 7     | Policy file and CI command         | Complete                 |
-| 8     | Packaging and public release       | In progress — release PR |
+| 8     | Packaging and public release       | Complete                 |
 
-Overall roadmap completion: 8 of 9 phases (89%).
+Overall roadmap completion: 9 of 9 phases (100%).
 
 ## Mandatory security invariants
 
@@ -587,7 +587,7 @@ verified, and deferred work. Code presence alone does not complete a phase.
   with zero findings, nine-file dry-run packing, root typecheck, zero-error lint, and
   Git diff checks passed. Root lint retained only unrelated vendored `.agents` warnings.
 
-### Phase 8 — in progress 2026-09-22
+### Phase 8 — completed 2026-09-23
 
 - Replaced the package README with complete quick-start, five-tool reference,
   policy/CLI guide, security/privacy model, Codex/VS Code/Claude configurations,
@@ -609,9 +609,9 @@ verified, and deferred work. Code presence alone does not complete a phase.
 - Full Windows clean-install and protocol/policy smokes passed under Node 22.19.0,
   24.21.0, and 26.9.0. The production dependency audit reported zero known
   vulnerabilities.
-- Registry checks reconfirmed every direct runtime dependency version and that
-  `compressbyurl-mcp` remains unclaimed. npm authentication is confirmed as `shadowpool`;
-  the credential remains local and is not stored in repository or workflow files.
+- The public registry now serves `compressbyurl-mcp@0.1.0`, published interactively by
+  npm account `shadowpool` with 2FA enabled after the full nine-job matrix passed on
+  both the release PR and merged commit. No credential entered the repository or CI.
 - actionlint 1.7.12 reported no findings for either GitHub workflow. Gitleaks 8.30.1
   reported no findings across repository history or the current release-relevant
   worktree; both temporary validators were SHA-256 verified and removed afterward.
@@ -634,11 +634,13 @@ verified, and deferred work. Code presence alone does not complete a phase.
   both `get_server_info` and `audit_workspace_images`; the latter returned one measured
   workspace image. Together with Codex, this completes the two-client compatibility
   gate without changing user configuration or requiring credentials.
-- The GitHub repository is public, satisfying npm's public-source prerequisite for
-  automatic provenance when the public package is published through trusted GitHub
-  Actions OIDC.
-
-Phase 8 is locally release-ready but externally blocked. Completion requires the
-nine-job GitHub matrix to pass on the release commit, npm first-publication and
-trusted-publisher setup, and a final clean registry install. Repository visibility and
-npm login prerequisites are complete. No package has been published.
+- The GitHub repository is public. The `v0.1.0` tag and GitHub release point to the
+  registry package's exact `gitHead`; release authorship is `im-shadowpool`.
+- Configured the npm trusted publisher for `im-shadowpool/compressbyurl`, workflow
+  `mcp-publish.yml`, and protected GitHub environment `npm`. Future release jobs
+  require maintainer approval and can publish through OIDC.
+- Verified a fresh install of the public registry package: silent library import,
+  policy CLI, five-tool stdio listing, and `get_server_info` invocation succeeded.
+  `npm audit signatures` verified registry signatures for all 34 installed packages.
+  The first version was bootstrapped interactively and therefore has no GitHub
+  provenance attestation; a later trusted-workflow publication can establish one.
