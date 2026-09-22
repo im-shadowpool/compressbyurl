@@ -198,6 +198,16 @@ For video: muted, playsInline, short loop, poster fallback, reduced-motion fallb
 
 Implement only the active phase.
 
+### MCP server workstream
+
+Before MCP planning or implementation, read
+`docs/28-mcp-implementation-plan.md` and follow its phase order, security invariants,
+acceptance criteria, and stop points.
+
+Security, contract, filesystem-containment, and package smoke tests required by the MCP
+roadmap are an explicit exception to the general automated-test deferral below. This
+exception applies only while implementing an explicitly requested MCP phase.
+
 To conserve agent usage, token quota, and runtime:
 - **Skip automated tests**: Do not write unit/e2e test suites or run vitest/playwright during phases unless explicitly instructed by the user.
 - **Skip separate reviewer loops**: Do not trigger separate reviewer/QA agent passes; self-verify code cleanly during implementation.

@@ -1,0 +1,75 @@
+{
+  "name": "compressbyurl-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for auditing and optimizing web image assets",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "image-optimization",
+    "web-performance",
+    "sharp"
+  ],
+  "homepage": "https://github.com/im-shadowpool/compressbyurl#readme",
+  "bugs": {
+    "url": "https://github.com/im-shadowpool/compressbyurl/issues"
+  },
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "compressbyurl-mcp": "dist/cli.js"
+  },
+  "main": "./dist/server.js",
+  "types": "./dist/server.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/**/*.test.ts",
+    "verify": "npm run typecheck && npm test && npm run build && npm run smoke:stdio && npm run smoke:workspace && npm run smoke:check",
+    "smoke:stdio": "node scripts/verify-stdio.mjs",
+    "smoke:workspace": "node scripts/verify-workspace-stdio.mjs",
+    "smoke:check": "node scripts/verify-check-cli.mjs",
+    "smoke:packed": "node scripts/verify-packed-install.mjs",
+    "prepack": "npm run build",
+    "pack:check": "npm pack --dry-run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/im-shadowpool/compressbyurl.git",
+    "directory": "packages/mcp"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "cheerio": "^1.2.0",
+    "ipaddr.js": "^2.5.0",
+    "sharp": "^0.35.4",
+    "undici": "^8.10.2",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@compressbyurl/url-audit-core": "*",
+    "@types/node": "^24.10.0",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
+  }
+}

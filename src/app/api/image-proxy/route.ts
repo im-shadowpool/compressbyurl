@@ -2,13 +2,17 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { consumeRateLimit, requestClientKey } from "@/lib/security/rate-limit";
-import { fetchPublicResource, PublicFetchError } from "@/lib/security/public-http";
-import { STATIC_IMAGE_MIME_TYPES } from "@/types/image";
+import {
+  assertStaticImageResource,
+  fetchPublicResource,
+  IMAGE_FETCH_BUDGET,
+  PublicFetchError,
+  STATIC_IMAGE_CONTENT_TYPES,
+} from "@/lib/security/public-http";
 
 export const runtime = "nodejs";
 
 const requestSchema = z.object({ url: z.string().min(1).max(4096) }).strict();
-const allowedImageTypes = new Set<string>(STATIC_IMAGE_MIME_TYPES);
 
 export async function POST(request: Request) {
   const rateLimit = consumeRateLimit(
@@ -42,12 +46,11 @@ export async function POST(request: Request) {
 
   try {
     const result = await fetchPublicResource(parsed.data.url, {
-      allowedContentTypes: allowedImageTypes,
+      allowedContentTypes: STATIC_IMAGE_CONTENT_TYPES,
       contentTypeErrorMessage: "The remote resource is not a supported static image.",
-      maxBytes: 25 * 1024 * 1024,
-      maxRedirects: 4,
-      timeoutMs: 10_000,
+      ...IMAGE_FETCH_BUDGET,
     });
+    assertStaticImageResource(result.bytes, result.contentType);
     const body = new Uint8Array(result.bytes).buffer;
     return new Response(body, {
       headers: {

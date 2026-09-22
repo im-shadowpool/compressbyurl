@@ -65,6 +65,19 @@ Do not invent competitor claims.
 Every tool page must use the shared production tool engine.
 ```
 
+## MCP server phases
+
+```text
+Read AGENTS.md and docs/28-mcp-implementation-plan.md.
+Also read docs/03-technical-architecture.md, docs/05-url-scanner-architecture.md,
+docs/08-security-privacy.md, and docs/12-data-model-api-contracts.md.
+
+Implement only MCP Phase <N>.
+Preserve the existing web product boundaries.
+Run every security, contract, filesystem, and package check required by that phase.
+Update MCP status and evidence, then stop before the next phase.
+```
+
 ## Reviewer instruction (On-demand audit only)
 
 > [!NOTE]

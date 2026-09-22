@@ -1,0 +1,56 @@
+{
+  "name": "@compressbyurl/url-audit-core",
+  "version": "0.1.0",
+  "description": "Private shared URL audit and network safety core for CompressByURL",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./network": {
+      "types": "./dist/public-http.d.ts",
+      "import": "./dist/public-http.js"
+    },
+    "./extract": {
+      "types": "./dist/extract-candidates.d.ts",
+      "import": "./dist/extract-candidates.js"
+    },
+    "./schemas": {
+      "types": "./dist/schemas.d.ts",
+      "import": "./dist/schemas.js"
+    },
+    "./image-signature": {
+      "types": "./dist/image-signature.d.ts",
+      "import": "./dist/image-signature.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/**/*.test.ts",
+    "verify": "npm run typecheck && npm test && npm run build",
+    "prepare": "npm run build"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "ipaddr.js": "^2.5.0",
+    "undici": "^8.10.2",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2"
+  }
+}

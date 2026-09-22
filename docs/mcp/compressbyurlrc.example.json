@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1",
+  "budgets": {
+    "maxBytes": 500000,
+    "maxWidth": 2560,
+    "maxHeight": 2560
+  },
+  "rules": [
+    {
+      "pattern": "public/hero/**",
+      "budgets": {
+        "maxBytes": 250000,
+        "maxWidth": 1920
+      }
+    },
+    {
+      "pattern": "public/icons/*.png",
+      "budgets": {
+        "maxBytes": 100000,
+        "maxWidth": 512,
+        "maxHeight": 512
+      }
+    }
+  ]
+}
