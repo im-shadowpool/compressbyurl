@@ -123,3 +123,8 @@ configuration.
 11. `docs/17-seo-implementation-roadmap.md`
 12. `docs/23-seo-progress.md`
 13. `docs/25-backlink-distribution-plan.md`
+14. `docs/28-mcp-implementation-plan.md` for MCP server work
+
+MCP decisions, tool contracts, policy/CI guidance, and the release procedure live under
+`docs/mcp/`. The independently publishable package and its host configuration reference
+live in `packages/mcp/`.

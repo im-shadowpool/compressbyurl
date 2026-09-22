@@ -4,44 +4,9 @@ import {
   type IntakeRejectionCode,
   type RejectedIntakeItem,
 } from "./types";
-import { STATIC_IMAGE_MIME_BY_FORMAT } from "@/types/image";
+import { inspectStaticImageSignature } from "@compressbyurl/url-audit-core/image-signature";
 
 const SIGNATURE_READ_LIMIT = 256 * 1024;
-
-function startsWith(bytes: Uint8Array, signature: readonly number[]) {
-  return signature.every((value, index) => bytes[index] === value);
-}
-
-function readAscii(bytes: Uint8Array, start: number, length: number) {
-  return String.fromCharCode(...bytes.subarray(start, start + length));
-}
-
-function includesAscii(bytes: Uint8Array, value: string) {
-  const signature = Array.from(value, (character) => character.charCodeAt(0));
-
-  return bytes.some((_, start) =>
-    signature.every((byte, offset) => bytes[start + offset] === byte),
-  );
-}
-
-function detectFormat(bytes: Uint8Array): AcceptedImageFormat | null {
-  if (startsWith(bytes, [0xff, 0xd8, 0xff])) return "jpeg";
-  if (startsWith(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) {
-    return "png";
-  }
-  if (readAscii(bytes, 0, 4) === "RIFF" && readAscii(bytes, 8, 4) === "WEBP") {
-    return "webp";
-  }
-  if (
-    readAscii(bytes, 4, 4) === "ftyp" &&
-    (includesAscii(bytes.subarray(8, 64), "avif") ||
-      includesAscii(bytes.subarray(8, 64), "avis"))
-  ) {
-    return "avif";
-  }
-
-  return null;
-}
 
 function rejection(
   file: File,
@@ -77,9 +42,9 @@ export async function validateImageFile(
   } catch {
     return rejection(file, id, "unreadable-file", "This file could not be read.");
   }
-  const format = detectFormat(bytes);
+  const signature = inspectStaticImageSignature(bytes);
 
-  if (!format) {
+  if (!signature) {
     return rejection(
       file,
       id,
@@ -88,18 +53,16 @@ export async function validateImageFile(
     );
   }
 
-  if (
-    format === "webp" &&
-    (includesAscii(bytes, "ANIM") || includesAscii(bytes, "ANMF"))
-  ) {
-    return rejection(file, id, "animated-image", "Animated WebP is not supported.");
+  if (signature.animated) {
+    return rejection(
+      file,
+      id,
+      "animated-image",
+      `Animated ${signature.format.toUpperCase()} is not supported.`,
+    );
   }
 
-  if (format === "avif" && includesAscii(bytes.subarray(8, 64), "avis")) {
-    return rejection(file, id, "animated-image", "Animated AVIF is not supported.");
-  }
-
-  if (file.type && file.type !== STATIC_IMAGE_MIME_BY_FORMAT[format]) {
+  if (file.type && file.type !== signature.mimeType) {
     return rejection(
       file,
       id,
@@ -110,9 +73,9 @@ export async function validateImageFile(
 
   return {
     file,
-    format,
+    format: signature.format as AcceptedImageFormat,
     id,
-    mime: STATIC_IMAGE_MIME_BY_FORMAT[format],
+    mime: signature.mimeType,
     name: file.name,
     size: file.size,
     status: "validated",

@@ -3,12 +3,16 @@ import { z } from "zod";
 
 import { extractWebsiteScanManifest } from "@/features/website-scan";
 import { consumeRateLimit, requestClientKey } from "@/lib/security/rate-limit";
-import { fetchPublicResource, PublicFetchError } from "@/lib/security/public-http";
+import {
+  fetchPublicResource,
+  HTML_CONTENT_TYPES,
+  HTML_FETCH_BUDGET,
+  PublicFetchError,
+} from "@/lib/security/public-http";
 
 export const runtime = "nodejs";
 
 const requestSchema = z.object({ url: z.string().min(1).max(4096) }).strict();
-const allowedHtmlTypes = new Set(["text/html", "application/xhtml+xml"]);
 const MAX_CANDIDATES = 80;
 
 export async function POST(request: Request) {
@@ -43,11 +47,9 @@ export async function POST(request: Request) {
 
   try {
     const resource = await fetchPublicResource(parsed.data.url, {
-      allowedContentTypes: allowedHtmlTypes,
+      allowedContentTypes: HTML_CONTENT_TYPES,
       contentTypeErrorMessage: "The URL did not return an HTML webpage.",
-      maxBytes: 2 * 1024 * 1024,
-      maxRedirects: 4,
-      timeoutMs: 10_000,
+      ...HTML_FETCH_BUDGET,
     });
     const manifest = extractWebsiteScanManifest(
       new TextDecoder().decode(resource.bytes),
