@@ -21,4 +21,4 @@ All notable changes to `compressbyurl-mcp` are documented here. The package foll
   entry, with clean-consumer import verification.
 - Windows x64, macOS arm64, and Ubuntu Linux x64 release verification workflow.
 
-[0.1.0]: https://github.com/im-shadowpool/CompressByURL/releases/tag/v0.1.0
+[0.1.0]: https://github.com/im-shadowpool/compressbyurl/releases/tag/v0.1.0

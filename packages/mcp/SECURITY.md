@@ -9,7 +9,7 @@ upgrading rather than receiving a backport.
 ## Report a vulnerability privately
 
 Do not open a public issue for a suspected vulnerability. Use the repository's
-[private vulnerability reporting](https://github.com/im-shadowpool/CompressByURL/security/advisories/new)
+[private vulnerability reporting](https://github.com/im-shadowpool/compressbyurl/security/advisories/new)
 form and include:
 
 - the affected version and operating system;

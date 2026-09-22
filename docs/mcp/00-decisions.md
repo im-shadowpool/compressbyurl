@@ -84,7 +84,7 @@ Versions must be checked again when Phase 8 begins.
 
 ## Release ownership
 
-- Source repository: https://github.com/im-shadowpool/CompressByURL
+- Source repository: https://github.com/im-shadowpool/compressbyurl
 - Release mechanism: GitHub Actions with npm trusted publishing and provenance.
 - A human repository owner must configure the npm/GitHub trust relationship before the
   first public release.

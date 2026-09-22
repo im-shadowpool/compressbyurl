@@ -167,10 +167,10 @@ test("public package metadata and documentation match the shipped surface", asyn
   ]);
   assert.equal(
     packageJson.homepage,
-    "https://github.com/im-shadowpool/CompressByURL#readme",
+    "https://github.com/im-shadowpool/compressbyurl#readme",
   );
   assert.deepEqual(packageJson.bugs, {
-    url: "https://github.com/im-shadowpool/CompressByURL/issues",
+    url: "https://github.com/im-shadowpool/compressbyurl/issues",
   });
   assert.equal(packageJson.private, false);
   assert.equal(packageJson.license, "MIT");
@@ -196,7 +196,7 @@ test("public package metadata and documentation match the shipped surface", asyn
   assert.deepEqual(packageJson.engines, { node: ">=22.19.0" });
   assert.deepEqual(packageJson.repository, {
     type: "git",
-    url: "git+https://github.com/im-shadowpool/CompressByURL.git",
+    url: "git+https://github.com/im-shadowpool/compressbyurl.git",
     directory: "packages/mcp",
   });
   assert.equal(

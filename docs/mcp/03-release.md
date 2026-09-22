@@ -67,7 +67,7 @@ in the package settings:
 | ----------------- | -------------------- |
 | Provider          | GitHub Actions       |
 | Organization/user | `im-shadowpool`      |
-| Repository        | `CompressByURL`      |
+| Repository        | `compressbyurl`      |
 | Workflow filename | `mcp-publish.yml`    |
 | Environment       | `npm`                |
 | Allowed action    | direct `npm publish` |
