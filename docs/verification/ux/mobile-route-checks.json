@@ -1,0 +1,210 @@
+[
+  {
+    "main": 1,
+    "overflow": false,
+    "path": "/about",
+    "title": "About & Contact",
+    "unlabelled": 0
+  },
+  {
+    "main": 1,
+    "overflow": false,
+    "path": "/privacy",
+    "title": "Privacy Policy",
+    "unlabelled": 0
+  },
+  {
+    "main": 1,
+    "overflow": false,
+    "path": "/terms",
+    "title": "Terms of Use",
+    "unlabelled": 0
+  },
+  {
+    "main": 1,
+    "overflow": false,
+    "path": "/cookies",
+    "title": "Cookie Policy",
+    "unlabelled": 0
+  },
+  {
+    "main": 1,
+    "overflow": false,
+    "path": "/learn",
+    "title": "Practical image optimization guides",
+    "unlabelled": 0
+  },
+  {
+    "main": 1,
+    "overflow": false,
+    "path": "/learn/webp-vs-avif-vs-jpeg",
+    "title": "WebP vs AVIF vs JPEG: choose by the image",
+    "unlabelled": 0
+  },
+  {
+    "main": 1,
+    "overflow": false,
+    "path": "/learn/how-target-size-compression-works",
+    "stageOverflow": false,
+    "title": "How target-size image compression works"
+  },
+  {
+    "main": 1,
+    "overflow": false,
+    "path": "/learn/find-large-images-on-a-website",
+    "stageOverflow": false,
+    "title": "How to find large images on a website"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-image",
+    "stageOverflow": false,
+    "title": "Compress Images Online"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-jpg",
+    "stageOverflow": false,
+    "title": "Compress JPG Images Online"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-png",
+    "stageOverflow": false,
+    "title": "Compress PNG Images Online"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-webp",
+    "stageOverflow": false,
+    "title": "Compress WebP Images Online"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/image-converter",
+    "stageOverflow": false,
+    "title": "Convert Images Online"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/jpg-to-webp",
+    "stageOverflow": false,
+    "title": "Convert JPG to WebP"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/png-to-webp",
+    "stageOverflow": false,
+    "title": "Convert PNG to WebP"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/resize-image",
+    "stageOverflow": false,
+    "title": "Resize Images Online"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-image-to-100kb",
+    "stageOverflow": false,
+    "title": "Compress an Image to 100KB"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-image-to-200kb",
+    "stageOverflow": false,
+    "title": "Compress an Image to 200KB"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-image-to-500kb",
+    "stageOverflow": false,
+    "title": "Compress an Image to 500KB"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-image-to-1mb",
+    "stageOverflow": false,
+    "title": "Compress an Image to 1MB"
+  },
+  {
+    "main": 1,
+    "mode": "linkImage URLImage URL",
+    "overflow": false,
+    "path": "/compress-image-from-url",
+    "stageOverflow": false,
+    "title": "Compress an Image from a URL"
+  },
+  {
+    "main": 1,
+    "mode": "travel_exploreWebsite URLWebsite",
+    "overflow": false,
+    "path": "/website-image-optimizer",
+    "stageOverflow": false,
+    "title": "Optimize Images from Any Webpage"
+  },
+  {
+    "main": 1,
+    "mode": "travel_exploreWebsite URLWebsite",
+    "overflow": false,
+    "path": "/website-image-scanner",
+    "stageOverflow": false,
+    "title": "Scan a Webpage for Image Problems"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/tinypng-alternative",
+    "stageOverflow": false,
+    "title": "A TinyPNG Alternative for Local and URL Workflows"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/squoosh-alternative",
+    "stageOverflow": false,
+    "title": "A Squoosh Alternative for Batches and URLs"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compressimage-alternative",
+    "stageOverflow": false,
+    "title": "A CompressImage.io Alternative with URL Tools"
+  },
+  {
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/iloveimg-alternative",
+    "stageOverflow": false,
+    "title": "An iLoveIMG Alternative with Local Processing"
+  }
+]

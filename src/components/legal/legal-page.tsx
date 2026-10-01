@@ -31,7 +31,7 @@ export function LegalPage({
   return (
     <div className="legal-page">
       <SiteHeader />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <header className="legal-hero">
           <Container size="bleed">
             <div className="legal-hero__frame">

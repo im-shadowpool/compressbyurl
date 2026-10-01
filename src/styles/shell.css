@@ -104,6 +104,7 @@
 }
 
 .site-nav a:hover,
+.site-nav a[aria-current="page"],
 .site-footer a:not(.ui-button):hover {
   color: var(--brand-ink);
 }

@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { MaterialSymbol } from "@/components/icons";
-import { SegmentedControl } from "@/components/ui";
+import { Button, SegmentedControl } from "@/components/ui";
 import type { SeoToolPreset } from "@/config/seo-routes";
 import {
   CompressionSettingsProvider,
@@ -44,6 +44,20 @@ interface ToolModeSwitcherProps {
 
 export function ToolModeSwitcher({ preset }: ToolModeSwitcherProps = {}) {
   const [mode, setMode] = useState<ToolMode>(preset?.sourceMode ?? "upload");
+  const shellRef = useRef<HTMLDialogElement>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  function focusWorkspace() {
+    const shell = shellRef.current;
+    if (!shell || shell.matches(":modal")) return;
+    // Promote the same DOM tree to the top layer, preserving files and workers.
+    shell.close();
+    shell.showModal();
+    shell
+      .querySelector<HTMLElement>('[aria-checked="true"]')
+      ?.focus({ preventScroll: true });
+    setExpanded(true);
+  }
   const initialSettings = useMemo<InitialCompressionSettings | undefined>(() => {
     if (mode === "website-url") {
       return {
@@ -70,8 +84,29 @@ export function ToolModeSwitcher({ preset }: ToolModeSwitcherProps = {}) {
 
   return (
     <CompressionSettingsProvider initialSettings={initialSettings}>
-      <div className="tool-shell" id="tool">
-        <CompressionSettingsMenu featuredGroup={featuredSettingsGroup} />
+      <dialog
+        className="tool-shell"
+        id="tool"
+        ref={shellRef}
+        open
+        aria-label="Image optimization workspace"
+        onClose={() => {
+          const shell = shellRef.current;
+          if (shell && !shell.open) {
+            shell.show();
+            setExpanded(false);
+          }
+        }}
+        onChangeCapture={(event) => {
+          const target = event.target;
+          if (
+            target instanceof HTMLInputElement &&
+            target.type === "file" &&
+            target.files?.length
+          )
+            focusWorkspace();
+        }}
+      >
         <div className="tool-shell__modes-row">
           <SegmentedControl
             className="tool-shell__modes"
@@ -86,7 +121,13 @@ export function ToolModeSwitcher({ preset }: ToolModeSwitcherProps = {}) {
             value={mode}
           />
         </div>
-        <div className="tool-stage">
+        <CompressionSettingsMenu featuredGroup={featuredSettingsGroup} />
+        <div
+          className="tool-stage"
+          tabIndex={0}
+          role="region"
+          aria-label="Image workspace"
+        >
           <div className="tool-stage__panel" hidden={mode !== "upload"}>
             <FileIntake
               acceptedFormats={
@@ -95,19 +136,33 @@ export function ToolModeSwitcher({ preset }: ToolModeSwitcherProps = {}) {
             />
           </div>
           <div className="tool-stage__panel" hidden={mode !== "image-url"}>
-            <ImageUrlIntake />
+            <ImageUrlIntake onWorkspaceStart={focusWorkspace} />
           </div>
           <div className="tool-stage__panel" hidden={mode !== "website-url"}>
             <WebsiteScanIntake
+              onWorkspaceStart={focusWorkspace}
               purpose={preset?.sourceMode === "website-url" ? preset.purpose : undefined}
             />
           </div>
         </div>
-        <div className="tool-shell__trust" id="privacy">
+        <div className="tool-shell__trust">
           <MaterialSymbol name="lock" size={20} />
           <span>Local files never leave your device.</span>
+          <Button
+            size="small"
+            variant="ghost"
+            onClick={() => (expanded ? shellRef.current?.close() : focusWorkspace())}
+            leadingIcon={
+              <MaterialSymbol
+                name={expanded ? "close_fullscreen" : "open_in_full"}
+                size={20}
+              />
+            }
+          >
+            {expanded ? "Back to page" : "Expand workspace"}
+          </Button>
         </div>
-      </div>
+      </dialog>
     </CompressionSettingsProvider>
   );
 }

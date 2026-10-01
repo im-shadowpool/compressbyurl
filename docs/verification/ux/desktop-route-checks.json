@@ -1,0 +1,210 @@
+[
+  {
+    "h1": 1,
+    "main": 1,
+    "overflow": false,
+    "path": "/about",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "overflow": false,
+    "path": "/privacy",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "overflow": false,
+    "path": "/terms",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "overflow": false,
+    "path": "/cookies",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "overflow": false,
+    "path": "/learn",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "overflow": false,
+    "path": "/learn/webp-vs-avif-vs-jpeg",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "overflow": false,
+    "path": "/learn/how-target-size-compression-works",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "overflow": false,
+    "path": "/learn/find-large-images-on-a-website",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-image",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-jpg",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-png",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-webp",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/image-converter",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/jpg-to-webp",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/png-to-webp",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/resize-image",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-image-to-100kb",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-image-to-200kb",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-image-to-500kb",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compress-image-to-1mb",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "linkImage URLImage URL",
+    "overflow": false,
+    "path": "/compress-image-from-url",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "travel_exploreWebsite URLWebsite",
+    "overflow": false,
+    "path": "/website-image-optimizer",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "travel_exploreWebsite URLWebsite",
+    "overflow": false,
+    "path": "/website-image-scanner",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/tinypng-alternative",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/squoosh-alternative",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/compressimage-alternative",
+    "width": 1309
+  },
+  {
+    "h1": 1,
+    "main": 1,
+    "mode": "upload_fileUpload filesFiles",
+    "overflow": false,
+    "path": "/iloveimg-alternative",
+    "width": 1309
+  }
+]

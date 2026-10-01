@@ -32,7 +32,12 @@ const sections: readonly LegalSection[] = [
     id: "storage-list",
     title: "What is stored",
     body: (
-      <div className="legal-table-scroll">
+      <div
+        className="legal-table-scroll"
+        tabIndex={0}
+        role="region"
+        aria-label="Policy details table"
+      >
         <table>
           <thead>
             <tr>

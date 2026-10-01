@@ -78,7 +78,12 @@ const sections: readonly LegalSection[] = [
     id: "data-we-use",
     title: "Information we use and why",
     body: (
-      <div className="legal-table-scroll">
+      <div
+        className="legal-table-scroll"
+        tabIndex={0}
+        role="region"
+        aria-label="Policy details table"
+      >
         <table>
           <thead>
             <tr>

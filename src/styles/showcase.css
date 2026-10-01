@@ -188,7 +188,7 @@
     width: 100%;
   }
 
-  .ui-segmented {
+  .ui-showcase .ui-segmented {
     display: grid;
     width: 100%;
     grid-auto-flow: row;

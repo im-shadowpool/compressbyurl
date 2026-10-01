@@ -16,7 +16,7 @@ export default function HomePage() {
   return (
     <div className="home-page">
       <SiteHeader />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <section className="home-hero" aria-labelledby="page-title">
           <Container size="bleed">
             <div className="home-hero__frame">

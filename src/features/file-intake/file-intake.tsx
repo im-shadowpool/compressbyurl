@@ -662,6 +662,8 @@ export function FileIntake({
 
   useEffect(() => {
     const handlePaste = (event: ClipboardEvent) => {
+      // Hidden source modes stay mounted to retain their batches.
+      if (!regionRef.current || regionRef.current.closest("[hidden]")) return;
       const files = Array.from(event.clipboardData?.files ?? []).filter((file) =>
         file.type.startsWith("image/"),
       );

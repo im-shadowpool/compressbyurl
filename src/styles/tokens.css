@@ -5,7 +5,7 @@
   --brand-primary: #ab9ff2;
   --brand-ink: #3c315b;
   --brand-ink-secondary: #655f71;
-  --brand-ink-muted: #86848d;
+  --brand-ink-muted: #716b7b;
   --brand-canvas: #1c1c1c;
   --brand-surface-1: #fffdf8;
   --brand-surface-2: #f4f2f4;
@@ -55,7 +55,7 @@
   --layout-bleed-gutter: clamp(0.75rem, 1.4vw, 1.25rem);
 
   /* Interaction */
-  --focus-ring-color: rgb(171 159 242 / 0.56);
+  --focus-ring-color: #7a67dd;
   --focus-ring-offset: 3px;
   --motion-duration-fast: 150ms;
   --motion-duration-base: 200ms;

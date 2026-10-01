@@ -14,10 +14,7 @@ import {
 
 import { MaterialSymbol } from "@/components/icons";
 import { Input, SegmentedControl, Select, Slider, Switch } from "@/components/ui";
-import {
-  createOutputName,
-  resolveOutputFormat,
-} from "@/features/compression";
+import { createOutputName, resolveOutputFormat } from "@/features/compression";
 import {
   describeCompressionMode,
   describeOutputFormat,
@@ -483,6 +480,8 @@ export function CompressionSettingsMenu({
 }) {
   const settings = useCompressionSettings();
   const [openGroupId, setOpenGroupId] = useState<SettingsGroupId | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
+  const railId = useId();
   const [renderedGroup, setRenderedGroup] = useState<SettingsGroup | null>(null);
   const popoverSupported = useSyncExternalStore(
     subscribeToPopoverSupport,
@@ -575,7 +574,12 @@ export function CompressionSettingsMenu({
     }
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpenGroupId(null);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        setOpenGroupId(null);
+        if (openGroupId) pillRefs.current.get(openGroupId)?.focus();
+      }
     }
 
     document.addEventListener("pointerdown", handlePointerDown);
@@ -604,7 +608,26 @@ export function CompressionSettingsMenu({
   }
 
   return (
-    <div className="settings-rail">
+    <div className="settings-rail" data-expanded={mobileExpanded}>
+      <button
+        className="settings-rail__toggle"
+        type="button"
+        aria-expanded={mobileExpanded}
+        aria-controls={railId}
+        onClick={() => {
+          setMobileExpanded(!mobileExpanded);
+          setOpenGroupId(null);
+        }}
+      >
+        <MaterialSymbol name="tune" size={20} />
+        <span>
+          Settings{" "}
+          <span className="settings-rail__summary">
+            {groupValue("format", settings)} · {groupValue("quality", settings)}
+          </span>
+        </span>
+        <MaterialSymbol name={mobileExpanded ? "expand_less" : "expand_more"} size={20} />
+      </button>
       <span className="settings-rail__title">
         <MaterialSymbol name="tune" size={20} />
         <span className="settings-rail__title-text">Settings</span>
@@ -612,6 +635,7 @@ export function CompressionSettingsMenu({
       <div
         aria-label="Compression settings"
         className="settings-rail__pills"
+        id={railId}
         role="group"
       >
         {orderedGroups.map((group) => {

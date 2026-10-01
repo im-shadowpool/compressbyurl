@@ -103,8 +103,14 @@ async function responseToFile(response: Response, sourceUrl: string) {
   });
 }
 
-export async function fetchImageUrl(value: string): Promise<ImageUrlFetchResult> {
+export async function fetchImageUrl(
+  value: string,
+  signal?: AbortSignal,
+): Promise<ImageUrlFetchResult> {
   const normalized = normalizeImageUrl(value);
+  const requestSignal = signal
+    ? AbortSignal.any([signal, AbortSignal.timeout(30_000)])
+    : AbortSignal.timeout(30_000);
 
   try {
     const response = await fetch(normalized, {
@@ -112,10 +118,12 @@ export async function fetchImageUrl(value: string): Promise<ImageUrlFetchResult>
       credentials: "omit",
       mode: "cors",
       redirect: "follow",
+      signal: requestSignal,
     });
     const file = await responseToFile(response, response.url || normalized);
     return { file, finalUrl: response.url || normalized, method: "direct" };
   } catch {
+    requestSignal.throwIfAborted();
     // CORS and network failures use the same strictly validated server fallback.
   }
 
@@ -124,6 +132,7 @@ export async function fetchImageUrl(value: string): Promise<ImageUrlFetchResult>
     credentials: "same-origin",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ url: normalized }),
+    signal: requestSignal,
   });
   if (!response.ok) {
     const errorBody: unknown = await response.json().catch(() => null);

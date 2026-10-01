@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { MaterialSymbol } from "@/components/icons";
@@ -19,6 +20,7 @@ const navigation = [
 ] as const;
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -34,6 +36,9 @@ export function SiteHeader() {
 
   return (
     <header className="site-header">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <Container>
         <div className="site-header__row">
           <Link className="site-wordmark" href="/" aria-label="CompressByURL home">
@@ -41,7 +46,11 @@ export function SiteHeader() {
           </Link>
           <nav className="site-nav site-nav--desktop" aria-label="Primary navigation">
             {navigation.map((item) => (
-              <Link href={item.href} key={item.label}>
+              <Link
+                href={item.href}
+                key={item.label}
+                aria-current={pathname === item.href ? "page" : undefined}
+              >
                 <span className="nav-link__label">{item.label}</span>
               </Link>
             ))}
@@ -67,7 +76,12 @@ export function SiteHeader() {
           >
             <p className="site-nav__mobile-label">Explore CompressByURL</p>
             {navigation.map((item) => (
-              <Link href={item.href} key={item.label} onClick={() => setOpen(false)}>
+              <Link
+                href={item.href}
+                key={item.label}
+                aria-current={pathname === item.href ? "page" : undefined}
+                onClick={() => setOpen(false)}
+              >
                 <span className="nav-link__label">{item.label}</span>
                 <MaterialSymbol name="arrow_forward" size={20} />
               </Link>

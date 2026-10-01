@@ -51,7 +51,7 @@ export function SeoToolPage({ content, route }: SeoToolPageProps) {
   return (
     <div className="seo-tool-page">
       <SiteHeader />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <section className="seo-tool-hero" aria-labelledby="page-title">
           <Container size="bleed">
             <div className="seo-tool-hero__frame">
@@ -120,7 +120,12 @@ export function SeoToolPage({ content, route }: SeoToolPageProps) {
                   </div>
                   <p>{content.comparison.intro}</p>
                 </div>
-                <div className="seo-tool-comparison__scroll">
+                <div
+                  className="seo-tool-comparison__scroll"
+                  role="region"
+                  tabIndex={0}
+                  aria-label="Tool comparison table"
+                >
                   <table>
                     <thead>
                       <tr>

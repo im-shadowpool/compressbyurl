@@ -18,7 +18,7 @@ export function EditorialPage({ content, route }: EditorialPageProps) {
   return (
     <div className="editorial-page">
       <SiteHeader />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <header className="editorial-hero">
           <Container size="content">
             <nav aria-label="Breadcrumb" className="editorial-breadcrumb">
@@ -47,14 +47,32 @@ export function EditorialPage({ content, route }: EditorialPageProps) {
               </ul>
             </aside>
 
-            {content.sections.map((section) => (
-              <section key={section.title}>
+            <details className="editorial-outline">
+              <summary>In this guide</summary>
+              <nav aria-label="Article sections">
+                <ol>
+                  {content.sections.map((section, index) => (
+                    <li key={section.title}>
+                      <a href={`#article-section-${index + 1}`}>{section.title}</a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            </details>
+
+            {content.sections.map((section, index) => (
+              <section key={section.title} id={`article-section-${index + 1}`}>
                 <h2>{section.title}</h2>
                 {section.paragraphs.map((paragraph) => (
                   <p key={paragraph}>{paragraph}</p>
                 ))}
                 {section.table ? (
-                  <div className="editorial-table-scroll">
+                  <div
+                    className="editorial-table-scroll"
+                    role="region"
+                    tabIndex={0}
+                    aria-label={`${section.title} comparison table`}
+                  >
                     <table>
                       <thead>
                         <tr>
@@ -70,11 +88,11 @@ export function EditorialPage({ content, route }: EditorialPageProps) {
                           <tr key={row.join("|")}>
                             {row.map((cell, index) =>
                               index === 0 ? (
-                                <th key={cell} scope="row">
+                                <th key={index} scope="row">
                                   {cell}
                                 </th>
                               ) : (
-                                <td key={cell}>{cell}</td>
+                                <td key={index}>{cell}</td>
                               ),
                             )}
                           </tr>

@@ -14,7 +14,7 @@ export default function LearnPage() {
   return (
     <div className="learn-page">
       <SiteHeader />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <header className="learn-hero">
           <Container size="bleed">
             <div className="learn-hero__frame">
@@ -43,10 +43,12 @@ export default function LearnPage() {
                     <span>{String(index + 1).padStart(2, "0")}</span>
                     <div>
                       <p>{content.readingTime}</p>
-                      <h2>{articleRoute.h1}</h2>
+                      <h2>
+                        <Link href={path}>{articleRoute.h1}</Link>
+                      </h2>
                       <p>{content.dek}</p>
                     </div>
-                    <Link href={path}>
+                    <Link href={path} aria-label={`Read ${articleRoute.h1}`}>
                       Read the guide
                       <MaterialSymbol name="arrow_forward" size={20} />
                     </Link>
