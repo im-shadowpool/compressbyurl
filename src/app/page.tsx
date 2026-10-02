@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { HomeGuides } from "@/components/blog/home-guides";
 
 import { MaterialSymbol } from "@/components/icons";
 import { Container } from "@/components/layout";
@@ -142,6 +143,7 @@ export default function HomePage() {
             </div>
           </Container>
         </section>
+        <HomeGuides />
       </main>
       <SiteFooter />
       <HomeStructuredData />

@@ -17,6 +17,7 @@ const navigation = [
   { label: "Target size", href: "/compress-image-to-200kb" },
   { label: "By URL", href: "/compress-image-from-url" },
   { label: "Website scanner", href: "/website-image-scanner" },
+  { label: "Blog", href: "/learn" },
 ] as const;
 
 export function SiteHeader() {

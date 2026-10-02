@@ -111,8 +111,8 @@ async function main() {
     (match) => match[1],
   );
   record(
-    sitemapUrls.length === 24,
-    `Expected 24 sitemap URLs; found ${sitemapUrls.length}.`,
+    sitemapUrls.length === 49,
+    `Expected 49 sitemap URLs including 23 guides and the author profile; found ${sitemapUrls.length}.`,
   );
   record(
     sitemapUrls.every((value) => new URL(value).origin === origin),
@@ -180,10 +180,22 @@ async function main() {
         "/ is missing SoftwareApplication schema.",
       );
     } else if (path === "/learn") {
-      record(!types.has("Article"), "/learn should not emit Article schema.");
+      record(types.has("CollectionPage"), "/learn is missing CollectionPage schema.");
+      record(
+        !types.has("Article") && !types.has("BlogPosting"),
+        "/learn should not emit article schema.",
+      );
     } else if (path.startsWith("/learn/")) {
-      record(types.has("Article"), `${path} is missing Article schema.`);
+      record(
+        types.has("Article") || types.has("BlogPosting"),
+        `${path} is missing article schema.`,
+      );
       record(types.has("BreadcrumbList"), `${path} is missing BreadcrumbList schema.`);
+    } else if (path.startsWith("/authors/")) {
+      record(types.has("ProfilePage"), `${path} is missing ProfilePage schema.`);
+      record(types.has("Person"), `${path} is missing Person schema.`);
+    } else if (["/about", "/privacy", "/terms", "/cookies"].includes(path)) {
+      // Legal/information pages have their own page semantics, not tool schemas.
     } else {
       record(types.has("WebApplication"), `${path} is missing WebApplication schema.`);
       record(types.has("FAQPage"), `${path} is missing FAQPage schema.`);

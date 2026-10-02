@@ -1,6 +1,6 @@
 # SEO Implementation Progress
 
-Last updated: 2026-09-14
+Last updated: 2026-10-02
 
 This is the single execution ledger for
 [`17-seo-implementation-roadmap.md`](./17-seo-implementation-roadmap.md). It records
@@ -9,7 +9,7 @@ calculated. Update this document after every SEO phase.
 
 ## Current position
 
-- Active phase: production deployment and measurement closeout — the domain and account properties exist, but the site is not yet reachable
+- Active workstream: editorial expansion and release. The live homepage and sitemap returned HTTP 200 on October 2; the pre-release production sitemap contains 28 URLs.
 - Phase 1 completion: 67% (2 of 3 deliverables prepared; production connection pending)
 - Phase 2 completion: 100%
 - Phase 3 completion: 100%
@@ -32,9 +32,39 @@ calculated. Update this document after every SEO phase.
 - Phase 20 completion: 100%
 - Phase 21 completion: 100% (monitoring system active; reviews continue monthly)
 - Roadmap completion: 19 of 21 phases complete (90.5%)
-- Next implementation action: deploy to `https://compressbyurl.com`, attach the domain in the hosting provider, then run `npm run verify:seo:production -- https://compressbyurl.com --require-ga`
-- Next external action: choose/configure the hosting provider, add its required DNS records, approve consent/privacy behavior, and submit `/sitemap.xml` after the deployment passes
-- External inputs required: hosting provider/project connection and approved consent/privacy behavior
+- Next implementation action: push the verified editorial release and check the canonical production sitemap for 49 URLs.
+- Next external action: submit the updated sitemap in Search Console and review the AdSense application status. Enable advertising only with the required disclosures and consent configuration.
+- External inputs required: Search Console query/index data and Google's AdSense review result. Analytics collection and advertising consent readiness are not inferred from public HTML.
+
+## October 2 editorial release
+
+See [the researched plan](./30-editorial-expansion-plan.md). The release adds 20
+original guides and expands the three existing articles. New publication dates
+use the actual creation date; original dates remain September 14, with October 2
+modification dates. Saipavan V has a public author profile and a topic-based bio.
+
+The homepage now links six guides in an accessible manual carousel. The redesigned
+library has four categories and server-rendered search; filtered query variants
+are noindexed and canonicalize to `/learn`. Articles have generated WebP covers,
+source references, worked examples, reading times, related guides, desktop TOC,
+mobile outline, and relevant working-tool links. The sitemap expands to 49 URLs:
+20 homepage/tool routes, 24 editorial routes, four information/legal routes, and
+one author profile. BlogPosting, BreadcrumbList, CollectionPage, and ProfilePage
+markup use the same typed content data as the visible pages.
+
+Release evidence: TypeScript and the final production build passed. Lint reports
+zero errors with 94 existing warnings in vendored skill scripts. All edited code
+passes Prettier; the repository-wide check still flags 64 untouched files.
+The existing SEO verifier passed all 49 pages against the local production build,
+including status, unique titles/descriptions/H1s, canonicals, robots, schema,
+redirects, and hard 404s. All 23 article bodies, sources, bylines, section anchors,
+and 31 linked paths passed rendered-content inspection. The build retains
+existing circular worker chunk warnings. GTmetrix references are valid research
+sources but reject automated HTTP fetches with 403; other primary references
+returned 200. No ranking or AdSense approval claim is made.
+
+The phase percentages and September 14 evidence below are historical roadmap
+snapshots, not a fresh certification of analytics or Search Console collection.
 
 Percentages are based on roadmap deliverables, not estimated effort. A phase is
 only marked complete when its required production behavior and evidence exist.

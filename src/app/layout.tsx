@@ -23,6 +23,7 @@ export const metadata: Metadata = {
   description:
     "Compress images from your device or a public URL. Fast, private, browser-first image optimization.",
   applicationName: "CompressByURL",
+  other: { "google-adsense-account": "ca-pub-7659056338155091" },
   keywords: ["image compressor", "compress image", "image URL", "web image optimization"],
   icons: {
     icon: [
@@ -31,9 +32,7 @@ export const metadata: Metadata = {
       { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
       { url: "/icons/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    apple: [
-      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     shortcut: "/favicon.ico",
   },
   robots: {

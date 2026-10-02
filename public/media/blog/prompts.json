@@ -1,0 +1,44 @@
+[
+  {
+    "name": "performance",
+    "prompt": "Use case: stylized-concept. Asset type: landscape blog featured illustration for CompressByURL, 1536x1024 landscape. Create a premium tactile 3D editorial still life, finely finished matte ceramic and frosted translucent glass, quiet studio lighting, art-directed composition, soft contact shadows. Palette: violet ink #3c315b, periwinkle #ab9ff2, warm white #fffdf8, with restrained pastel blue. Clean warm background, generous negative space, central subject comfortably inside frame for 16:9 crops. No text, no letters, no logos, no numbers, no watermark, no human faces, no UI screenshot. Avoid generic rockets and stock business imagery. A sculptural lavender stopwatch beside a curved architectural track carrying a small framed landscape photograph, suggesting an image arriving promptly at a browser. Restrained, elegant, minimal three-dimensional studio scene.",
+    "path": "/media/blog/performance.webp",
+    "origin": "Generated with the built-in image_gen tool on October 2, 2026",
+    "sourceFilename": "exec-b860390f-72e3-4ff7-9fab-107012d3b698.png"
+  },
+  {
+    "name": "audit",
+    "prompt": "Use case: stylized-concept. Asset type: landscape blog featured illustration for CompressByURL, 1536x1024 landscape. Create a premium tactile 3D editorial still life, finely finished matte ceramic and frosted translucent glass, quiet studio lighting, art-directed composition, soft contact shadows. Palette: violet ink #3c315b, periwinkle #ab9ff2, warm white #fffdf8, with restrained pastel blue. Clean warm background, generous negative space, central subject comfortably inside frame for 16:9 crops. No text, no letters, no logos, no numbers, no watermark, no human faces, no UI screenshot. Avoid generic rockets and stock business imagery. A large translucent lavender magnifying lens examining a neat upright array of miniature landscape-photo tiles, one oversized tile standing apart. Thoughtful forensic image-audit metaphor, visually clear and grounded.",
+    "path": "/media/blog/audit.webp",
+    "origin": "Generated with the built-in image_gen tool on October 2, 2026",
+    "sourceFilename": "exec-0a97db0a-f366-413f-9f61-ca43acb3ad48.png"
+  },
+  {
+    "name": "responsive",
+    "prompt": "Use case: stylized-concept. Asset type: landscape blog featured illustration for CompressByURL, 1536x1024 landscape. Create a premium tactile 3D editorial still life, finely finished matte ceramic and frosted translucent glass, quiet studio lighting, art-directed composition, soft contact shadows. Palette: violet ink #3c315b, periwinkle #ab9ff2, warm white #fffdf8, with restrained pastel blue. Clean warm background, generous negative space, central subject comfortably inside frame for 16:9 crops. No text, no letters, no logos, no numbers, no watermark, no human faces, no UI screenshot. Avoid generic rockets and stock business imagery. Three staggered ceramic device-like frames of descending size, each holding the same abstract mountain-and-sun scene, suggesting responsive image variants. Elegant rhythmic composition.",
+    "path": "/media/blog/responsive.webp",
+    "origin": "Generated with the built-in image_gen tool on October 2, 2026",
+    "sourceFilename": "exec-d878253f-e67c-4b92-b304-bddb6b2fbdbb.png"
+  },
+  {
+    "name": "formats",
+    "prompt": "Use case: stylized-concept. Asset type: landscape blog featured illustration for CompressByURL, 1536x1024 landscape. Create a premium tactile 3D editorial still life, finely finished matte ceramic and frosted translucent glass, quiet studio lighting, art-directed composition, soft contact shadows. Palette: violet ink #3c315b, periwinkle #ab9ff2, warm white #fffdf8, with restrained pastel blue. Clean warm background, generous negative space, central subject comfortably inside frame for 16:9 crops. No text, no letters, no logos, no numbers, no watermark, no human faces, no UI screenshot. Avoid generic rockets and stock business imagery. Three sculptural image slabs made of ceramic, frosted glass and translucent lavender acrylic, showing the same delicate mountain scene through different material treatments; format comparison metaphor, art museum quality.",
+    "path": "/media/blog/formats.webp",
+    "origin": "Generated with the built-in image_gen tool on October 2, 2026",
+    "sourceFilename": "exec-9c6d4e3c-10a1-4986-bc49-b3835f6db87f.png"
+  },
+  {
+    "name": "compression",
+    "prompt": "Use case: stylized-concept. Asset type: landscape blog featured illustration for CompressByURL, 1536x1024 landscape. Create a premium tactile 3D editorial still life, finely finished matte ceramic and frosted translucent glass, quiet studio lighting, art-directed composition, soft contact shadows. Palette: violet ink #3c315b, periwinkle #ab9ff2, warm white #fffdf8, with restrained pastel blue. Clean warm background, generous negative space, central subject comfortably inside frame for 16:9 crops. No text, no letters, no logos, no numbers, no watermark, no human faces, no UI screenshot. Avoid generic rockets and stock business imagery. A broad image tile and a compact image tile beside an elegant ceramic press, with the same mountain landscape retained in both. Compression without losing the subject; tactile, precise, beautiful.",
+    "path": "/media/blog/compression.webp",
+    "origin": "Generated with the built-in image_gen tool on October 2, 2026",
+    "sourceFilename": "exec-ff71beb1-4534-4808-b5fc-b7d0116edf9c.png"
+  },
+  {
+    "name": "delivery",
+    "prompt": "Use case: stylized-concept. Asset type: landscape blog featured illustration for CompressByURL, 1536x1024 landscape. Create a premium tactile 3D editorial still life, finely finished matte ceramic and frosted translucent glass, quiet studio lighting, art-directed composition, soft contact shadows. Palette: violet ink #3c315b, periwinkle #ab9ff2, warm white #fffdf8, with restrained pastel blue. Clean warm background, generous negative space, central subject comfortably inside frame for 16:9 crops. No text, no letters, no logos, no numbers, no watermark, no human faces, no UI screenshot. Avoid generic rockets and stock business imagery. A sculptural ceramic browser frame connected by a single translucent lavender ribbon to a small stack of landscape image tiles. Public image URL delivery and browser-first processing metaphor. Clear sparse studio arrangement.",
+    "path": "/media/blog/delivery.webp",
+    "origin": "Generated with the built-in image_gen tool on October 2, 2026",
+    "sourceFilename": "exec-d80dcf77-b23e-41f4-8ddc-e1b5d6aa4daa.png"
+  }
+]

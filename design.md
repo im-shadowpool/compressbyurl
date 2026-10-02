@@ -384,6 +384,19 @@ There is no 4px or 8px tier. The system is deliberately soft — even the smalle
 
 ## Do's and Don'ts
 
+### CompressByURL editorial extension
+
+The blog uses the same palette, Inter, rounded image frames, and 400-weight display
+headings. Reading pages add 17px prose with generous line height, 18px introductory
+copy, 14px secondary metadata, and 22px card headings. Section headings retain the
+24–30px scale. Fluid display sizes span 32–60px for articles and 44–92px for the
+library, so long technical titles remain readable on phones. Large section and
+profile titles use 32–64px. These are intentional responsive reading tiers.
+Dark panels derive muted text, borders, and secondary surfaces by mixing the
+existing canvas, surface, ink, and lavender tokens. They introduce no new brand
+colors. Small navigation headings may use 500 for separation; body and display
+text remain 400.
+
 **Do** treat the abstract ribbon hero as an illustration layer, not a CSS gradient. The ribbons cross at competing angles and have textured edges — they are rendered art, not geometric shapes. Approximate with SVG paths or an image asset; a CSS linear-gradient will look flat by comparison.
 
 **Do** use `{colors.surface-1}` (#fffdf8) — not pure white — for the below-fold canvas. The violet undertone links the body to the deep-violet ink color and to the hero's lavender accent. Pure white severs that connection.

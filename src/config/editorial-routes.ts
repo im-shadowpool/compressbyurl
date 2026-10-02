@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import {
+  articleImage,
+  BLOG_AUTHOR,
+  getBlogArticle,
+  getBlogArticles,
+  type BlogSlug,
+} from "@/content/blog";
 
-export type EditorialRoutePath =
-  | "/learn"
-  | "/learn/webp-vs-avif-vs-jpeg"
-  | "/learn/how-target-size-compression-works"
-  | "/learn/find-large-images-on-a-website";
-
+export type EditorialRoutePath = "/learn" | `/learn/${BlogSlug}`;
 export interface EditorialRouteDefinition {
   canonical: EditorialRoutePath;
   description: string;
@@ -14,76 +16,70 @@ export interface EditorialRouteDefinition {
   published: boolean;
   title: string;
 }
-
-export const EDITORIAL_ROUTE_REGISTRY = [
+export const EDITORIAL_ROUTE_REGISTRY: readonly EditorialRouteDefinition[] = [
   {
     canonical: "/learn",
     description:
-      "Practical, evidence-led guides to image formats, target file sizes and finding oversized webpage images.",
-    h1: "Practical image optimization guides",
+      "Practical guides to image optimization, website image audits, PageSpeed, GTmetrix, and responsive image delivery for developers.",
+    h1: "Image optimization, explained.",
     path: "/learn",
     published: true,
-    title: "Image Optimization Guides | CompressByURL",
+    title: "Image Optimization & Web Performance Blog | CompressByURL",
   },
-  {
-    canonical: "/learn/webp-vs-avif-vs-jpeg",
-    description:
-      "Choose between JPEG, WebP and AVIF using compatibility, transparency, encoding time and measured output—not a universal winner.",
-    h1: "WebP vs AVIF vs JPEG: choose by the image",
-    path: "/learn/webp-vs-avif-vs-jpeg",
+  ...getBlogArticles().map((article): EditorialRouteDefinition => ({
+    canonical: `/learn/${article.slug}` as EditorialRoutePath,
+    description: article.description,
+    h1: article.title,
+    path: `/learn/${article.slug}` as EditorialRoutePath,
     published: true,
-    title: "WebP vs AVIF vs JPEG: Practical Format Guide | CompressByURL",
-  },
-  {
-    canonical: "/learn/how-target-size-compression-works",
-    description:
-      "Learn how an image compressor searches quality and dimensions to meet a target such as 200 KB, including honest failure cases.",
-    h1: "How target-size image compression works",
-    path: "/learn/how-target-size-compression-works",
-    published: true,
-    title: "How Target-Size Image Compression Works | CompressByURL",
-  },
-  {
-    canonical: "/learn/find-large-images-on-a-website",
-    description:
-      "Find likely oversized and heavy webpage images by comparing bytes, intrinsic dimensions, rendered size and HTML hints.",
-    h1: "How to find large images on a website",
-    path: "/learn/find-large-images-on-a-website",
-    published: true,
-    title: "How to Find Large Images on a Website | CompressByURL",
-  },
-] as const satisfies readonly EditorialRouteDefinition[];
-
-const routeByPath = new Map<EditorialRoutePath, EditorialRouteDefinition>(
-  EDITORIAL_ROUTE_REGISTRY.map((route) => [route.path, route]),
-);
-
+    title: `${article.seoTitle ?? article.title} | CompressByURL`,
+  })),
+];
+const routeByPath = new Map(EDITORIAL_ROUTE_REGISTRY.map((route) => [route.path, route]));
 export function getEditorialRoute(path: EditorialRoutePath) {
   const route = routeByPath.get(path);
   if (!route) throw new Error(`Unknown editorial route: ${path}`);
   return route;
 }
-
 export function getPublishedEditorialRoutes() {
   return EDITORIAL_ROUTE_REGISTRY.filter((route) => route.published);
 }
-
 export function createEditorialMetadata(path: EditorialRoutePath): Metadata {
   const route = getEditorialRoute(path);
+  const article = getBlogArticle(path.slice("/learn/".length));
+  const image = article ? articleImage(article) : "/media/blog/audit.webp";
   return {
     alternates: { canonical: route.canonical },
     description: route.description,
+    authors: article ? [{ name: BLOG_AUTHOR.name, url: BLOG_AUTHOR.path }] : undefined,
     openGraph: {
       description: route.description,
       title: route.title,
-      type: path === "/learn" ? "website" : "article",
+      type: article ? "article" : "website",
       url: route.canonical,
+      images: [
+        {
+          url: image,
+          width: 1440,
+          height: 960,
+          alt: article?.imageAlt ?? "Image audit illustration",
+        },
+      ],
+      ...(article
+        ? {
+            publishedTime: article.publishedOn,
+            modifiedTime: article.modifiedOn,
+            authors: [BLOG_AUTHOR.name],
+            section: article.category,
+          }
+        : {}),
     },
     title: { absolute: route.title },
     twitter: {
       card: "summary_large_image",
       description: route.description,
       title: route.title,
+      images: [image],
     },
   };
 }

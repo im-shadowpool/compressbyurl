@@ -1,16 +1,21 @@
 import { absoluteSiteUrl } from "@/config/site";
 import type { EditorialRouteDefinition } from "@/config/editorial-routes";
+import {
+  articleImage,
+  articleWordCount,
+  BLOG_AUTHOR,
+  getBlogCategory,
+} from "@/content/blog";
+import type { BlogArticle } from "@/content/blog-types";
 
-import type { EditorialArticleContent } from "./editorial-content";
-
-interface ArticleStructuredDataProps {
-  content: EditorialArticleContent;
+export function ArticleStructuredData({
+  content,
+  route,
+}: {
+  content: BlogArticle;
   route: EditorialRouteDefinition;
-}
-
-export function ArticleStructuredData({ content, route }: ArticleStructuredDataProps) {
+}) {
   const url = absoluteSiteUrl(route.path);
-  const publishedDate = "2026-09-14";
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
@@ -27,44 +32,45 @@ export function ArticleStructuredData({ content, route }: ArticleStructuredDataP
           {
             "@type": "ListItem",
             item: absoluteSiteUrl("/learn"),
-            name: "Learn",
+            name: "Blog",
             position: 2,
           },
-          {
-            "@type": "ListItem",
-            item: url,
-            name: route.h1,
-            position: 3,
-          },
+          { "@type": "ListItem", item: url, name: route.h1, position: 3 },
         ],
       },
       {
         "@id": `${url}#article`,
-        "@type": "Article",
-        dateModified: publishedDate,
-        datePublished: publishedDate,
+        "@type": "BlogPosting",
+        dateModified: content.modifiedOn,
+        datePublished: content.publishedOn,
         description: route.description,
         headline: route.h1,
         mainEntityOfPage: url,
+        image: absoluteSiteUrl(articleImage(content)),
+        inLanguage: "en",
+        articleSection: getBlogCategory(content.category)?.name,
+        wordCount: articleWordCount(content),
+        author: {
+          "@type": "Person",
+          "@id": `${absoluteSiteUrl(BLOG_AUTHOR.path)}#person`,
+          name: BLOG_AUTHOR.name,
+          url: absoluteSiteUrl(BLOG_AUTHOR.path),
+        },
         publisher: {
           "@type": "Organization",
           name: "CompressByURL",
           url: absoluteSiteUrl("/"),
         },
-        text: [
-          content.dek,
-          ...content.sections.flatMap((section) => section.paragraphs),
-        ].join(" "),
+        citation: content.sources.map((source) => source.url),
       },
     ],
   };
-
   return (
     <script
+      type="application/ld+json"
       dangerouslySetInnerHTML={{
         __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
       }}
-      type="application/ld+json"
     />
   );
 }
