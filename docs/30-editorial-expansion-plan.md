@@ -50,18 +50,18 @@ All are informational, searchable implementation guides. Each has its own diagno
 
 ## Implementation contract
 
-1. Preserve existing URLs and original publication dates; add 20 new articles dated on their actual creation date, October 2, 2026. Never imply past publication by alternating fabricated dates.
+1. Preserve existing URLs. Following the owner's October 2 browser feedback, use a staggered two-day publication-date cadence from August 18 through October 1. These are owner-assigned editorial dates; October 2 remains the modification date.
 2. Use one typed content model for route metadata, full server-rendered body, author, dates, image, category, sources, and related links. Avoid a CMS or new dependencies.
 3. Add a manual scroll-snap homepage carousel with visible previous/next controls and View all. Keep links in server-rendered HTML, lazy-load covers, and respect reduced motion.
 4. Add a featured article and SSR category/search navigation to the listing. Query variants are canonicalized to `/learn` and noindexed. Empty searches have recovery links.
-5. Add an illustrated article header, real byline, short answer, sticky desktop TOC, mobile outline, code/table support, FAQs, related guides, and tool sidebar. Use Saipavan V's name and a topic-based bio, never invented expertise.
-6. Ship six generated editorial cover artworks shared by coherent topics. These are conceptual illustrations, not benchmark screenshots. Save prompts and final WebP assets in the project.
+5. Add an illustrated article header, real byline, short answer, desktop TOC, mobile outline, code/table support, FAQs, related guides, and tool sidebar. The article spans the site container; the sidebar follows the main page scroll without a nested scrollbar. Use Saipavan V's name and a topic-based bio, never invented expertise.
+6. Give all 23 articles their own technical diagram and readable topic title. Save original SVG artwork, rendered WebP covers, and a manifest in `public/media/blog/covers`. The initial six generated artworks remain available, but the blog uses the unique covers.
 7. Add a public author profile; update Article/Breadcrumb/ProfilePage/CollectionPage markup, social images, actual dates, and sitemap lastmod. Keep unrelated routes and privacy behavior unchanged.
 8. Validate TypeScript, lint, formatting, rendered desktop/mobile pages, content/source/image/link coverage, and a final release build before the user-requested push. Do not create unit/e2e suites or separate reviewer agents.
 
 ## Design contract
 
-Mode: Read. Preserve `design.md`. Warm white canvas and violet ink; one dark featured-story composition, quiet lavender accents, 24–32px image frames, 400-weight Inter headings. Wide listing grid with a narrow topic sidebar; article body capped to readable width and a sticky contents rail. Images convey technical subjects; no decorative dashboards, fake ratings, stock avatars, or autoplay.
+Mode: Read. Preserve `design.md`. Warm white canvas and violet ink; one dark featured-story composition, quiet lavender accents, 24–32px image frames, 400-weight Inter headings. Wide listing grid with a category-only sidebar; article body and navigation span the site container. The main page owns scrolling. Each cover explains its own technical topic with vector artwork and readable text. No fake ratings, stock avatars, or autoplay.
 
 ## Measurement and distribution
 

@@ -1,6 +1,5 @@
 import type { BlogArticle } from "./blog-types";
 
-// Authored, source-linked editorial content. Illustrative examples are not benchmarks.
 export const BLOG_ARTICLES = [
   {
     slug: "fix-pagespeed-improve-image-delivery",
@@ -88,9 +87,8 @@ export const BLOG_ARTICLES = [
           "No. It helps discover image candidates and create optimized replacement files. You deploy those files and update the references yourself.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of a lavender stopwatch and an image travelling toward a browser frame",
-    publishedOn: "2026-10-02",
+    imageAlt: "Improve image delivery: topic-specific technical illustration",
+    publishedOn: "2026-10-01",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -200,9 +198,8 @@ export const BLOG_ARTICLES = [
           "CSS controls presentation. It does not replace the large resource with a smaller encoded file; the delivery markup or image service must choose that file.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of matching landscape images in three differently sized frames",
-    publishedOn: "2026-10-02",
+    imageAlt: "Size images for the screen: topic-specific technical illustration",
+    publishedOn: "2026-09-29",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -306,9 +303,8 @@ export const BLOG_ARTICLES = [
           "No. Work from an original when possible. Repeated lossy exports can accumulate artifacts without recovering any lost detail.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of a ceramic press beside large and compact image tiles",
-    publishedOn: "2026-10-02",
+    imageAlt: "Fewer bytes. Clearer images.: topic-specific technical illustration",
+    publishedOn: "2026-09-27",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -413,9 +409,8 @@ export const BLOG_ARTICLES = [
           "No. Start with the resource actually required by the layout and check responsive selection. Extra preloads can consume bandwidth without helping the measured element.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of a lavender stopwatch and an image travelling toward a browser frame",
-    publishedOn: "2026-10-02",
+    imageAlt: "Start the hero request sooner: topic-specific technical illustration",
+    publishedOn: "2026-09-25",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -536,9 +531,8 @@ export const BLOG_ARTICLES = [
           "No. Performance is one part of site quality. AdSense also reviews content, access, and policy compliance, and Google makes the approval decision.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of a magnifying lens inspecting landscape image tiles",
-    publishedOn: "2026-10-02",
+    imageAlt: "Your image audit checklist: topic-specific technical illustration",
+    publishedOn: "2026-09-23",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -651,9 +645,8 @@ export const BLOG_ARTICLES = [
           "No. Width candidates handle resolution selection. Use deliberately prepared crops and picture media conditions when composition needs to change.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of matching landscape images in three differently sized frames",
-    publishedOn: "2026-10-02",
+    imageAlt: "Responsive images that fit: topic-specific technical illustration",
+    publishedOn: "2026-09-21",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -760,9 +753,8 @@ export const BLOG_ARTICLES = [
           "No. Use loading controls for the confirmed critical image. Offscreen cards should not all compete with first-view content.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of matching landscape images in three differently sized frames",
-    publishedOn: "2026-10-02",
+    imageAlt: "Next.js Image Check sizes first: topic-specific technical illustration",
+    publishedOn: "2026-09-19",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -866,9 +858,8 @@ export const BLOG_ARTICLES = [
           "Treat priority and loading as separate controls. A deferred resource still depends on its loading conditions; verify the resulting request timeline.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of a lavender stopwatch and an image travelling toward a browser frame",
-    publishedOn: "2026-10-02",
+    imageAlt: "Load the hero. Defer the rest.: topic-specific technical illustration",
+    publishedOn: "2026-09-17",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -972,9 +963,8 @@ export const BLOG_ARTICLES = [
           "Yes. Keep a correct intrinsic ratio and use CSS for fluid display. Confirm the resulting geometry in the real component.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of matching landscape images in three differently sized frames",
-    publishedOn: "2026-10-02",
+    imageAlt: "Reserve space. Stop the shift.: topic-specific technical illustration",
+    publishedOn: "2026-09-15",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -1086,9 +1076,8 @@ export const BLOG_ARTICLES = [
           "No. A static inventory cannot establish rendered timing. Use your browser’s request timeline or performance report for that evidence.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of image tiles connected to a browser frame by a lavender ribbon",
-    publishedOn: "2026-10-02",
+    imageAlt: "A faster CSS background: topic-specific technical illustration",
+    publishedOn: "2026-09-13",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -1197,9 +1186,8 @@ export const BLOG_ARTICLES = [
           "No. The file must actually be encoded in the intended format, and the page must request that output.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of three image tiles made from different translucent materials",
-    publishedOn: "2026-10-02",
+    imageAlt: "Deliver modern image formats: topic-specific technical illustration",
+    publishedOn: "2026-09-11",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -1310,8 +1298,8 @@ export const BLOG_ARTICLES = [
       },
     ],
     imageAlt:
-      "Conceptual illustration of a magnifying lens inspecting landscape image tiles",
-    publishedOn: "2026-10-02",
+      "Less page weight. More useful pixels.: topic-specific technical illustration",
+    publishedOn: "2026-09-09",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -1422,9 +1410,8 @@ export const BLOG_ARTICLES = [
           "Field summaries reflect a reporting period of real visits. A fresh lab run can respond to a deployment sooner than that historical data.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of a lavender stopwatch and an image travelling toward a browser frame",
-    publishedOn: "2026-10-02",
+    imageAlt: "Two reports. One website.: topic-specific technical illustration",
+    publishedOn: "2026-09-07",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -1532,9 +1519,8 @@ export const BLOG_ARTICLES = [
           "Use a fresh mobile navigation as stronger evidence. A browser can keep a larger candidate it already downloaded.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of a magnifying lens inspecting landscape image tiles",
-    publishedOn: "2026-10-02",
+    imageAlt: "Find the image the browser chose: topic-specific technical illustration",
+    publishedOn: "2026-09-05",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -1641,9 +1627,8 @@ export const BLOG_ARTICLES = [
           "No. Static HTML discovery cannot measure rendering, interactions, or actual layout shifts. Use a rendered browser and appropriate performance data.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of a magnifying lens inspecting landscape image tiles",
-    publishedOn: "2026-10-02",
+    imageAlt: "What a scanner can actually see: topic-specific technical illustration",
+    publishedOn: "2026-09-03",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -1747,9 +1732,8 @@ export const BLOG_ARTICLES = [
           "No. Identify shared uses and preserve a rollback path before removing or replacing media.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of image tiles connected to a browser frame by a lavender ribbon",
-    publishedOn: "2026-10-02",
+    imageAlt: "Lighter WordPress images: topic-specific technical illustration",
+    publishedOn: "2026-09-01",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -1863,9 +1847,8 @@ export const BLOG_ARTICLES = [
           "No. Keep a JPEG when it meets compatibility and quality needs and compares well against alternatives.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of three image tiles made from different translucent materials",
-    publishedOn: "2026-10-02",
+    imageAlt: "When WebP gets bigger: topic-specific technical illustration",
+    publishedOn: "2026-08-30",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -1975,9 +1958,8 @@ export const BLOG_ARTICLES = [
           "No. Explain essential instructions in the article text and provide appropriate alternative text so the bitmap is not the only way to understand the procedure.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of a ceramic press beside large and compact image tiles",
-    publishedOn: "2026-10-02",
+    imageAlt: "Small PNGs. Sharp text.: topic-specific technical illustration",
+    publishedOn: "2026-08-28",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -2086,9 +2068,8 @@ export const BLOG_ARTICLES = [
           "No. Local-file compression and the target search happen in your browser. You upload the downloaded result to the destination separately.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of a ceramic press beside large and compact image tiles",
-    publishedOn: "2026-10-02",
+    imageAlt: "Under 200 KB. Still useful.: topic-specific technical illustration",
+    publishedOn: "2026-08-26",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -2199,9 +2180,8 @@ export const BLOG_ARTICLES = [
           "No. Its server retrieval path is limited to safe public destinations. Use a permitted local download and browser compression instead.",
       },
     ],
-    imageAlt:
-      "Conceptual illustration of image tiles connected to a browser frame by a lavender ribbon",
-    publishedOn: "2026-10-02",
+    imageAlt: "An image URL meets CORS: topic-specific technical illustration",
+    publishedOn: "2026-08-24",
     modifiedOn: "2026-10-02",
     toolLinks: [
       {
@@ -2227,8 +2207,8 @@ export const BLOG_ARTICLES = [
     category: "image-optimization",
     image: "formats",
     imageAlt:
-      "Conceptual illustration of three image tiles made from different translucent materials",
-    publishedOn: "2026-09-14",
+      "JPEG, WebP, AVIF Choose by the image: topic-specific technical illustration",
+    publishedOn: "2026-08-22",
     modifiedOn: "2026-10-02",
     dek: "There is no permanently smallest format for every image. Start with the content, browser requirements and transparency needs, then compare outputs from the same source.",
     summary: [
@@ -2335,9 +2315,8 @@ export const BLOG_ARTICLES = [
       "A target such as 200 KB is a constraint, not a quality setting. A useful compressor searches for the best tested output under that ceiling and admits when quality alone cannot get there.",
     category: "image-optimization",
     image: "compression",
-    imageAlt:
-      "Conceptual illustration of a ceramic press beside large and compact image tiles",
-    publishedOn: "2026-09-14",
+    imageAlt: "How target-size search works: topic-specific technical illustration",
+    publishedOn: "2026-08-20",
     modifiedOn: "2026-10-02",
     dek: "A target such as 200 KB is a constraint, not a quality setting. A useful compressor searches for the best tested output under that ceiling and admits when quality alone cannot get there.",
     summary: [
@@ -2433,9 +2412,8 @@ export const BLOG_ARTICLES = [
       "A useful audit separates transfer weight, intrinsic pixel dimensions and rendered size. One number cannot tell you whether an image is actually a problem.",
     category: "website-audits",
     image: "audit",
-    imageAlt:
-      "Conceptual illustration of a magnifying lens inspecting landscape image tiles",
-    publishedOn: "2026-09-14",
+    imageAlt: "Find your heaviest images: topic-specific technical illustration",
+    publishedOn: "2026-08-18",
     modifiedOn: "2026-10-02",
     dek: "A useful audit separates transfer weight, intrinsic pixel dimensions and rendered size. One number cannot tell you whether an image is actually a problem.",
     summary: [

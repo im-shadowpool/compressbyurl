@@ -39,9 +39,10 @@ calculated. Update this document after every SEO phase.
 ## October 2 editorial release
 
 See [the researched plan](./30-editorial-expansion-plan.md). The release adds 20
-original guides and expands the three existing articles. New publication dates
-use the actual creation date; original dates remain September 14, with October 2
-modification dates. Saipavan V has a public author profile and a topic-based bio.
+original guides and expands the three existing articles. After the owner's browser
+feedback, publication dates follow an owner-assigned two-day cadence from August
+18 through October 1; modification dates remain October 2. Saipavan V has a public
+author profile and a topic-based bio.
 
 The homepage now links six guides in an accessible manual carousel. The redesigned
 library has four categories and server-rendered search; filtered query variants
@@ -62,6 +63,18 @@ and 31 linked paths passed rendered-content inspection. The build retains
 existing circular worker chunk warnings. GTmetrix references are valid research
 sources but reject automated HTTP fetches with 403; other primary references
 returned 200. No ranking or AdSense approval claim is made.
+
+Browser feedback refinement: removed the library header note, editorial promise
+callout, and scanner promotion; the listing sidebar now contains only categories.
+Every article has a distinct text-bearing diagram cover, with SVG source and WebP
+output. The article grid spans the site container and its sidebar uses the main
+page scroll, with no sticky nested overflow region. Shared typed metadata keeps
+visible dates, social images, and BlogPosting schema synchronized.
+The refinement passed the release build, targeted ESLint/Prettier, all 49 local
+production SEO checks, and 23 rendered article date/image consistency checks.
+All cover outputs have distinct hashes. Browser inspection confirmed no removed
+callout nodes, 23 distinct listing dates/covers, a static sidebar with visible
+overflow, and no horizontal overflow in the mobile listing.
 
 The phase percentages and September 14 evidence below are historical roadmap
 snapshots, not a fresh certification of analytics or Search Console collection.

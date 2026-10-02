@@ -1,0 +1,186 @@
+[
+  {
+    "slug": "fix-pagespeed-improve-image-delivery",
+    "title": "Improve image delivery",
+    "diagram": "delivery",
+    "source": "fix-pagespeed-improve-image-delivery.svg",
+    "image": "fix-pagespeed-improve-image-delivery.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "gtmetrix-properly-size-images",
+    "title": "Size images for the screen",
+    "diagram": "sizing",
+    "source": "gtmetrix-properly-size-images.svg",
+    "image": "gtmetrix-properly-size-images.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "gtmetrix-efficiently-encode-images",
+    "title": "Fewer bytes. Clearer images.",
+    "diagram": "quality",
+    "source": "gtmetrix-efficiently-encode-images.svg",
+    "image": "gtmetrix-efficiently-encode-images.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "fix-lcp-image-resource-load-delay",
+    "title": "Start the hero request sooner",
+    "diagram": "timeline",
+    "source": "fix-lcp-image-resource-load-delay.svg",
+    "image": "fix-lcp-image-resource-load-delay.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "image-pagespeed-checklist",
+    "title": "Your image audit checklist",
+    "diagram": "checklist",
+    "source": "image-pagespeed-checklist.svg",
+    "image": "image-pagespeed-checklist.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "responsive-images-srcset-sizes",
+    "title": "Responsive images that fit",
+    "diagram": "responsive",
+    "source": "responsive-images-srcset-sizes.svg",
+    "image": "responsive-images-srcset-sizes.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "nextjs-image-sizes-too-large",
+    "title": "Next.js Image Check sizes first",
+    "diagram": "grid",
+    "source": "nextjs-image-sizes-too-large.svg",
+    "image": "nextjs-image-sizes-too-large.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "lcp-image-lazy-loading",
+    "title": "Load the hero. Defer the rest.",
+    "diagram": "lazy",
+    "source": "lcp-image-lazy-loading.svg",
+    "image": "lcp-image-lazy-loading.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "images-cumulative-layout-shift",
+    "title": "Reserve space. Stop the shift.",
+    "diagram": "layout",
+    "source": "images-cumulative-layout-shift.svg",
+    "image": "images-cumulative-layout-shift.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "css-background-image-lcp",
+    "title": "A faster CSS background",
+    "diagram": "layers",
+    "source": "css-background-image-lcp.svg",
+    "image": "css-background-image-lcp.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "gtmetrix-next-gen-image-formats",
+    "title": "Deliver modern image formats",
+    "diagram": "formats",
+    "source": "gtmetrix-next-gen-image-formats.svg",
+    "image": "gtmetrix-next-gen-image-formats.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "avoid-enormous-network-payloads-images",
+    "title": "Less page weight. More useful pixels.",
+    "diagram": "payload",
+    "source": "avoid-enormous-network-payloads-images.svg",
+    "image": "avoid-enormous-network-payloads-images.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "pagespeed-vs-gtmetrix-images",
+    "title": "Two reports. One website.",
+    "diagram": "reports",
+    "source": "pagespeed-vs-gtmetrix-images.svg",
+    "image": "pagespeed-vs-gtmetrix-images.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "find-oversized-images-devtools",
+    "title": "Find the image the browser chose",
+    "diagram": "devtools",
+    "source": "find-oversized-images-devtools.svg",
+    "image": "find-oversized-images-devtools.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "website-image-scanner-limitations",
+    "title": "What a scanner can actually see",
+    "diagram": "scanner",
+    "source": "website-image-scanner-limitations.svg",
+    "image": "website-image-scanner-limitations.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "wordpress-image-optimization-without-plugin",
+    "title": "Lighter WordPress images",
+    "diagram": "wordpress",
+    "source": "wordpress-image-optimization-without-plugin.svg",
+    "image": "wordpress-image-optimization-without-plugin.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "webp-bigger-than-jpeg",
+    "title": "When WebP gets bigger",
+    "diagram": "bytes",
+    "source": "webp-bigger-than-jpeg.svg",
+    "image": "webp-bigger-than-jpeg.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "compress-png-screenshots-sharp-text",
+    "title": "Small PNGs. Sharp text.",
+    "diagram": "pixels",
+    "source": "compress-png-screenshots-sharp-text.svg",
+    "image": "compress-png-screenshots-sharp-text.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "compress-images-200kb-clarity",
+    "title": "Under 200 KB. Still useful.",
+    "diagram": "target",
+    "source": "compress-images-200kb-clarity.svg",
+    "image": "compress-images-200kb-clarity.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "image-url-cors-errors",
+    "title": "An image URL meets CORS",
+    "diagram": "cors",
+    "source": "image-url-cors-errors.svg",
+    "image": "image-url-cors-errors.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "webp-vs-avif-vs-jpeg",
+    "title": "JPEG, WebP, AVIF Choose by the image",
+    "diagram": "compare",
+    "source": "webp-vs-avif-vs-jpeg.svg",
+    "image": "webp-vs-avif-vs-jpeg.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "how-target-size-compression-works",
+    "title": "How target-size search works",
+    "diagram": "search",
+    "source": "how-target-size-compression-works.svg",
+    "image": "how-target-size-compression-works.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  },
+  {
+    "slug": "find-large-images-on-a-website",
+    "title": "Find your heaviest images",
+    "diagram": "inventory",
+    "source": "find-large-images-on-a-website.svg",
+    "image": "find-large-images-on-a-website.webp",
+    "method": "Original vector diagram rendered to WebP; no measured benchmark claims"
+  }
+]

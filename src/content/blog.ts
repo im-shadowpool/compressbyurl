@@ -47,7 +47,7 @@ export const BLOG_CATEGORIES: readonly {
 ];
 
 export function getBlogArticles(): readonly BlogArticle[] {
-  return BLOG_ARTICLES;
+  return [...BLOG_ARTICLES].sort((a, b) => b.publishedOn.localeCompare(a.publishedOn));
 }
 
 export function getBlogArticle(slug: string): BlogArticle | undefined {
@@ -59,7 +59,7 @@ export function getBlogCategory(id: string) {
 }
 
 export function articleImage(article: BlogArticle) {
-  return `/media/blog/${article.image}.webp`;
+  return `/media/blog/covers/${article.slug}.webp`;
 }
 
 export function formatBlogDate(date: string) {

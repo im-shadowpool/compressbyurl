@@ -77,14 +77,6 @@ export default async function LearnPage({ searchParams }: LearnProps) {
                 better delivery, and the audits that point you in the right direction.
               </p>
             </div>
-            <div className="blog-library-header__note">
-              <MaterialSymbol name="auto_stories" size={32} />
-              <p>
-                {articles.length} guides to help you
-                <br />
-                find the next useful fix.
-              </p>
-            </div>
           </Container>
         </header>
         {!category && !search && featured ? (
@@ -155,22 +147,6 @@ export default async function LearnPage({ searchParams }: LearnProps) {
                     </Link>
                   ))}
                 </nav>
-                <div className="blog-sidebar-note">
-                  <MaterialSymbol name="fact_check" size={32} />
-                  <h3>A useful answer first.</h3>
-                  <p>
-                    Source-linked explanations, worked examples, and clear limits. No
-                    universal quality setting or magic performance score.
-                  </p>
-                  <Link href="/authors/saipavan-v">Meet the author</Link>
-                </div>
-                <Link className="blog-sidebar-tool" href="/website-image-scanner">
-                  <MaterialSymbol name="travel_explore" size={32} />
-                  <span>
-                    Find your heavy images<small>Open the website scanner</small>
-                  </span>
-                  <MaterialSymbol name="arrow_forward" />
-                </Link>
               </aside>
               <div className="blog-library__results">
                 <div className="blog-library__toolbar">
